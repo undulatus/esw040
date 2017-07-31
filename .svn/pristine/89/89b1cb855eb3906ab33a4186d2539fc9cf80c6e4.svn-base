@@ -1,0 +1,3 @@
+#token configs
+token.request.header=Authorization
+token.secret=secret
