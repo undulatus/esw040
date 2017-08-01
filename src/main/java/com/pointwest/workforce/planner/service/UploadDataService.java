@@ -2,12 +2,12 @@ package com.pointwest.workforce.planner.service;
 
 import java.util.List;
 
-import com.pointwest.workforce.planner.domain.OpportunityTnl;
+import com.pointwest.workforce.planner.domain.OpportunityTnlRaw;
 
 public interface UploadDataService {
 
-	public List<OpportunityTnl> fetchAllOpporutnityTnl();
+	public List<OpportunityTnlRaw> fetchAllOpporutnityTnlRaw();
 
-	public List<OpportunityTnl> saveOpportunityTnl(List<OpportunityTnl> opportunityTnl);
+	public List<OpportunityTnlRaw> saveOpportunityTnlRaw(List<OpportunityTnlRaw> opportunityTnlRaws);
 	
 }

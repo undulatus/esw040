@@ -9,32 +9,32 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.pointwest.workforce.planner.data.OpportunityTnlRepository;
-import com.pointwest.workforce.planner.domain.OpportunityTnl;
+import com.pointwest.workforce.planner.data.OpportunityTnlRawRepository;
+import com.pointwest.workforce.planner.domain.OpportunityTnlRaw;
 import com.pointwest.workforce.planner.service.UploadDataService;
 
 @Service
 public class UploadDataServiceImpl implements UploadDataService {
 
 	@Autowired
-	OpportunityTnlRepository opportunityTnlRepository;
+	OpportunityTnlRawRepository opportunityTnlRawRepository;
 
 	private static final Logger log = LoggerFactory.getLogger(UploadDataServiceImpl.class);
 
 	@Override
-	public List<OpportunityTnl> fetchAllOpporutnityTnl() {
-		List<OpportunityTnl> opportunitTnls = new ArrayList<OpportunityTnl>();
-		opportunityTnlRepository.findAll().forEach(opportunitTnls::add);
+	public List<OpportunityTnlRaw> fetchAllOpporutnityTnl() {
+		List<OpportunityTnlRaw> opportunitTnls = new ArrayList<OpportunityTnlRaw>();
+		opportunityTnlRawRepository.findAll().forEach(opportunitTnls::add);
 		return opportunitTnls;
 	}
 
 	@Transactional(rollbackFor=Exception.class)
 	@Override
-	public List<OpportunityTnl> saveOpportunityTnl(List<OpportunityTnl> opportunityTnls) {
+	public List<OpportunityTnlRaw> saveOpportunityTnlRaw(List<OpportunityTnlRaw> opportunityTnlRaws) {
 		// TODO Auto-generated method stub
-		List<OpportunityTnl> saved = null;
+		List<OpportunityTnlRaw> saved = null;
 		try {
-			saved = (List<OpportunityTnl>) opportunityTnlRepository.save(opportunityTnls);
+			saved = (List<OpportunityTnlRaw>) opportunityTnlRawRepository.save(opportunityTnlRaws);
 		} catch(Exception e) {
 			log.error("Exception in saving opp tnl " + e.getMessage());
 			saved = null;

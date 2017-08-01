@@ -11,39 +11,39 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pointwest.workforce.planner.domain.CustomError;
-import com.pointwest.workforce.planner.domain.OpportunityTnl;
+import com.pointwest.workforce.planner.domain.OpportunityTnlRaw;
 import com.pointwest.workforce.planner.service.UploadDataService;
 
 @RestController
-public class OpportunityTnlController {
+public class OpportunityTnlRawController {
 	
 	@Autowired
 	UploadDataService uploadDataService;
 	
 	@RequestMapping(method=RequestMethod.GET, value="/workbook/tnl")
-    public ResponseEntity<Object> fetchAllOpportunityTnl() {
-       List<OpportunityTnl> opportunityTnls = uploadDataService.fetchAllOpporutnityTnl();
-       if(opportunityTnls == null) {
+    public ResponseEntity<Object> fetchAllOpportunityTnlRaw() {
+       List<OpportunityTnlRaw> opportunityTnlRaws = uploadDataService.fetchAllOpporutnityTnlRaw();
+       if(opportunityTnlRaws == null) {
     	   return new ResponseEntity<>(new CustomError("No list retrieved"), HttpStatus.NOT_FOUND);
        } else {
-    	   return new ResponseEntity<>(opportunityTnls, HttpStatus.OK);
+    	   return new ResponseEntity<>(opportunityTnlRaws, HttpStatus.OK);
        }
     }
 	
 	@RequestMapping(method = RequestMethod.POST, value = "/opportunities")
-	public ResponseEntity<Object> saveOpportunity(@RequestBody(required = true) List<OpportunityTnl> opportunityTnls) {
+	public ResponseEntity<Object> saveOpportunity(@RequestBody(required = true) List<OpportunityTnlRaw> opportunityTnlRaws) {
 		
-		List<OpportunityTnl> savedOpportunityTnls = null;
+		List<OpportunityTnlRaw> savedOpportunityTnlRaws = null;
 		try {
-			savedOpportunityTnls = uploadDataService.saveOpportunityTnl(opportunityTnls);
+			savedOpportunityTnlRaws = uploadDataService.saveOpportunityTnlRaw(opportunityTnlRaws);
 		} catch (Exception e) {
 			return new ResponseEntity<>(new CustomError(e.getMessage()), HttpStatus.BAD_REQUEST);
 		}
 		
-		if (savedOpportunityTnls == null) {
+		if (savedOpportunityTnlRaws == null) {
 			return new ResponseEntity<>(new CustomError("Incorrect inputs, not saved"), HttpStatus.BAD_REQUEST);
 		} else {
-			return new ResponseEntity<>(savedOpportunityTnls, HttpStatus.OK);
+			return new ResponseEntity<>(savedOpportunityTnlRaws, HttpStatus.OK);
 		}
 	}
 	
