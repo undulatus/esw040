@@ -1,0 +1,151 @@
+package com.pointwest.workforce.planner.domain;
+
+import java.io.Serializable;
+import java.sql.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="workbook_datasource")
+public class WorkbookDataSource implements Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public WorkbookDataSource() {
+		super();
+	}
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	@Column(name="workbook_datasource_id")
+	private Long workbookDataSourceId;
+	
+	@Column(name="workbook_datasource_file_name")
+	private String workbookDataSourceFileName;
+	
+	@Column(name="workbook_datasource_URL")
+	private String url;
+	
+	@Column(name="workbook_datasource_entry")
+	private Integer entry;
+	
+	@Column(name="workbook_datasource_start_upload")
+	private Date startDateTime;
+	
+	@Column(name="workbook_datasource_owner")
+	private String owner;
+	
+	@Column(name="source")
+	private String source;
+	
+	@Column(name="uploaded_by")
+	private String uploader;
+	
+	@OneToOne
+	@JoinColumn(name="business_unit_id")
+	private BusinessUnit businessUnit;
+	
+	@Column(name="workbook_datasource_validation_status")
+	private String validationStatus;
+	
+	@Column(name="workbook_datasource_migration_status")
+	private String migrationStatus;
+
+	public Long getWorkbookDataSourceId() {
+		return workbookDataSourceId;
+	}
+
+	public void setWorkbookDataSourceId(Long workbookDataSourceId) {
+		this.workbookDataSourceId = workbookDataSourceId;
+	}
+
+	public String getWorkbookDataSourceFileName() {
+		return workbookDataSourceFileName;
+	}
+
+	public void setWorkbookDataSourceFileName(String workbookDataSourceFileName) {
+		this.workbookDataSourceFileName = workbookDataSourceFileName;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	public Integer getEntry() {
+		return entry;
+	}
+
+	public void setEntry(Integer entry) {
+		this.entry = entry;
+	}
+
+	public Date getStartDateTime() {
+		return startDateTime;
+	}
+
+	public void setStartDateTime(Date startDateTime) {
+		this.startDateTime = startDateTime;
+	}
+
+	public String getOwner() {
+		return owner;
+	}
+
+	public void setOwner(String owner) {
+		this.owner = owner;
+	}
+
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
+	}
+
+	public String getUploader() {
+		return uploader;
+	}
+
+	public void setUploader(String uploader) {
+		this.uploader = uploader;
+	}
+
+	public BusinessUnit getBusinessUnit() {
+		return businessUnit;
+	}
+
+	public void setBusinessUnit(BusinessUnit businessUnit) {
+		this.businessUnit = businessUnit;
+	}
+
+	public String getValidationStatus() {
+		return validationStatus;
+	}
+
+	public void setValidationStatus(String validationStatus) {
+		this.validationStatus = validationStatus;
+	}
+
+	public String getMigrationStatus() {
+		return migrationStatus;
+	}
+
+	public void setMigrationStatus(String migrationStatus) {
+		this.migrationStatus = migrationStatus;
+	}
+}

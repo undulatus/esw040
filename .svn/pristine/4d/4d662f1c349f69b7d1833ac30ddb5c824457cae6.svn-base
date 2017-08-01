@@ -1,4 +1,4 @@
-package com.pointwest.workforce.planner.ui.domain;
+package com.pointwest.workforce.planner.nonentity.domain;
 
 import java.io.Serializable;
 import java.time.Instant;
