@@ -43,7 +43,7 @@ public class WorkbookController {
 		return null;
 	}
 	
-	@RequestMapping(method=RequestMethod.GET, value="/workbook/tnl")
+	@RequestMapping(method=RequestMethod.GET, value="/workbook/raw/tnl")
     public ResponseEntity<Object> fetchAllOpportunityTnlRaw() {
        List<OpportunityTnlRaw> opportunityTnlRaws = uploadDataService.fetchAllOpportunityTnlRaw();
        if(opportunityTnlRaws == null) {
@@ -53,7 +53,7 @@ public class WorkbookController {
        }
     }
 	
-	@RequestMapping(method = RequestMethod.POST, value = "/workbook/tnl")
+	@RequestMapping(method = RequestMethod.POST, value = "/workbook/raw/tnl")
 	public ResponseEntity<Object> saveOpportunity(@RequestBody(required = true) List<OpportunityTnlRaw> opportunityTnlRaws) {
 		
 		List<OpportunityTnlRaw> savedOpportunityTnlRaws = null;
