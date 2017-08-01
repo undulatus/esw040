@@ -22,7 +22,7 @@ public class OpportunityTnlRawController {
 	
 	@RequestMapping(method=RequestMethod.GET, value="/workbook/tnl")
     public ResponseEntity<Object> fetchAllOpportunityTnlRaw() {
-       List<OpportunityTnlRaw> opportunityTnlRaws = uploadDataService.fetchAllOpporutnityTnlRaw();
+       List<OpportunityTnlRaw> opportunityTnlRaws = uploadDataService.fetchAllOpportunityTnlRaw();
        if(opportunityTnlRaws == null) {
     	   return new ResponseEntity<>(new CustomError("No list retrieved"), HttpStatus.NOT_FOUND);
        } else {

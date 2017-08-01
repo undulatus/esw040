@@ -22,7 +22,7 @@ public class UploadDataServiceImpl implements UploadDataService {
 	private static final Logger log = LoggerFactory.getLogger(UploadDataServiceImpl.class);
 
 	@Override
-	public List<OpportunityTnlRaw> fetchAllOpporutnityTnl() {
+	public List<OpportunityTnlRaw> fetchAllOpportunityTnlRaw() {
 		List<OpportunityTnlRaw> opportunitTnls = new ArrayList<OpportunityTnlRaw>();
 		opportunityTnlRawRepository.findAll().forEach(opportunitTnls::add);
 		return opportunitTnls;
