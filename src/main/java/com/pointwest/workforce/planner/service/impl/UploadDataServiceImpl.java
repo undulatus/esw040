@@ -23,9 +23,9 @@ public class UploadDataServiceImpl implements UploadDataService {
 
 	@Override
 	public List<OpportunityTnlRaw> fetchAllOpportunityTnlRaw() {
-		List<OpportunityTnlRaw> opportunitTnls = new ArrayList<OpportunityTnlRaw>();
-		opportunityTnlRawRepository.findAll().forEach(opportunitTnls::add);
-		return opportunitTnls;
+		List<OpportunityTnlRaw> opportunitTnlRaws = new ArrayList<OpportunityTnlRaw>();
+		opportunityTnlRawRepository.findAll().forEach(opportunitTnlRaws::add);
+		return opportunitTnlRaws;
 	}
 
 	@Transactional(rollbackFor=Exception.class)
