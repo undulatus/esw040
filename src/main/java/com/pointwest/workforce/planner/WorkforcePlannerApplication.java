@@ -9,14 +9,12 @@ import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 @ComponentScan("com.pointwest.workforce.planner")
 @PropertySource("classpath:db-values.properties")
 @PropertySource("classpath:security-config.properties")
 @PropertySource("classpath:google-sheet.properties")
+@PropertySource("classpath:migration-definition.properties")
 @SpringBootApplication
 public class WorkforcePlannerApplication extends SpringBootServletInitializer {
 	
