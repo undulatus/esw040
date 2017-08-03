@@ -19,8 +19,6 @@ tnl.col.resource.fte.balance=balancederived
 #defaults
 tnl.def.activity.id=24
 tnl.def.serviceline.id=5
-tnl.def.durationgranularity=monthly
-tnl.def.documentstatus=published
 tnl.def.rowNumStart=2
 
 ###Non essentials for migration
