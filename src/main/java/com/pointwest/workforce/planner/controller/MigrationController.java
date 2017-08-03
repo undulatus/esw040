@@ -20,6 +20,7 @@ import com.pointwest.workforce.planner.domain.Opportunity;
 import com.pointwest.workforce.planner.nonentity.domain.OpportunityTnl;
 import com.pointwest.workforce.planner.nonentity.domain.Workbook;
 import com.pointwest.workforce.planner.service.MigrationService;
+import com.pointwest.workforce.planner.service.OpportunityService;
 
 @RestController
 public class MigrationController {
@@ -48,9 +49,14 @@ public class MigrationController {
 	@Value("${tnl.col.resource.fte.balance}")
 	private String resourceFteBalanceCol;
 //end from
+	@Value("${tnl.col.workbookdatasource.id}")
+	private String workbookDataSourceIdCol;
 	
 	@Autowired
 	MigrationService migrationService;
+	
+	@Autowired
+	OpportunityService opportunityService;
 	
 	private static final Logger log = LoggerFactory.getLogger(MigrationController.class);
 	
@@ -65,29 +71,76 @@ public class MigrationController {
     }*/
 	
 	@RequestMapping(method = RequestMethod.POST, value = "/migration")
-	public ResponseEntity<Object> migrateData(@RequestBody(required = false) String identifier) {
+	public ResponseEntity<Object> migrateData(@RequestBody(required = false) Long workbookDataSourceId) {
+		//@PathVariable int workbookDataSourceId
 		//use identifier here
 		//migrationService.deleteTnlOpportunities(identifier);
 		
 		Workbook workbook = new Workbook();
 		List<OpportunityTnl> opList = new ArrayList<OpportunityTnl>();
-		OpportunityTnl opportunityTnl = new OpportunityTnl();
-		Map<String, Object> dataMap = new HashMap<String, Object>();
-		dataMap.put(projectCodeCol, "prj02");
+		OpportunityTnl opportunityTnl = null;
+		Map<String, Object> dataMap = null;
+		//##
+		opportunityTnl = new OpportunityTnl();
+		dataMap = new HashMap<String, Object>();
+		dataMap.put(projectCodeCol, "prj01");
 		dataMap.put(resourceRoleCol, "Team/Technical Lead");
 		dataMap.put(resourcePracticeCol, "Java");
 		dataMap.put(resourcePayLevelCol, "SE 3");
 		dataMap.put(resourceIsBillableCol, "y");
 		dataMap.put(resourceStartDateCol, "08-21-2017");
-		dataMap.put(resourceEndDateCol, "01-21-2018");
+		dataMap.put(resourceEndDateCol, "10-21-2018");
 		dataMap.put(resourceFteBalanceCol, "1");
-		
+		dataMap.put(workbookDataSourceIdCol, "1");
 		opportunityTnl.setDataMap(dataMap);
 		opList.add(opportunityTnl);
+		//##
+		//##
+		opportunityTnl = new OpportunityTnl();
+		dataMap = new HashMap<String, Object>();
+		dataMap.put(projectCodeCol, "prj01");
+		dataMap.put(resourceRoleCol, "QA Analyst");
+		dataMap.put(resourcePracticeCol, "Java");
+		dataMap.put(resourcePayLevelCol, "SE 3");
+		dataMap.put(resourceIsBillableCol, "y");
+		dataMap.put(resourceStartDateCol, "08-21-2017");
+		dataMap.put(resourceEndDateCol, "11-21-2018");
+		dataMap.put(resourceFteBalanceCol, "3");
+		dataMap.put(workbookDataSourceIdCol, "1");
+		opportunityTnl.setDataMap(dataMap);
+		opList.add(opportunityTnl);
+		//##
+		//##
+		opportunityTnl = new OpportunityTnl();
+		dataMap = new HashMap<String, Object>();
+		dataMap.put(projectCodeCol, "prj02");
+		dataMap.put(resourceRoleCol, "Developer");
+		dataMap.put(resourcePracticeCol, "Java");
+		dataMap.put(resourcePayLevelCol, "SE 3");
+		dataMap.put(resourceIsBillableCol, "y");
+		dataMap.put(resourceStartDateCol, "08-21-2017");
+		dataMap.put(resourceEndDateCol, "12-21-2018");
+		dataMap.put(resourceFteBalanceCol, "1");
+		dataMap.put(workbookDataSourceIdCol, "1");
+		opportunityTnl.setDataMap(dataMap);
+		opList.add(opportunityTnl);
+		//##
+		
+		//#
+		workbookDataSourceId = Long.valueOf("1");
+		//#
 		
 		workbook.setOpportunityTnl(opList);
 		
+		//delete opportunities uploaded from the same source
+		List<Opportunity> opportunitiesToDelete = opportunityService.fetchOpportunitiesByWorkbookDataSourceId(workbookDataSourceId);
+		for(Opportunity opportunity : opportunitiesToDelete) {
+			opportunityService.deleteOpportunity(opportunity.getOpportunityId());
+			log.debug("delete during upload purging opportunity " + opportunity.getOpportunityId());
+		}
+		//insert opportunity entries
 		List<Opportunity> opportunities = migrationService.saveTnlOpportunities(workbook);
+		
 		return new ResponseEntity<>(opportunities, HttpStatus.OK);
 	}
 	

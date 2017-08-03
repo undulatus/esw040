@@ -16,6 +16,7 @@ import com.pointwest.workforce.planner.WorkforcePlannerApplication;
 import com.pointwest.workforce.planner.data.OpportunityEntityRepository;
 import com.pointwest.workforce.planner.data.OpportunityRepository;
 import com.pointwest.workforce.planner.domain.Opportunity;
+import com.pointwest.workforce.planner.domain.OpportunityActivity;
 import com.pointwest.workforce.planner.domain.OpportunityEntity;
 import com.pointwest.workforce.planner.domain.WeeklyFTEKey;
 import com.pointwest.workforce.planner.service.OpportunityActivityService;
@@ -290,5 +291,12 @@ public class OpportunityServiceImpl implements OpportunityService {
 			log.debug("no truncated fte schedule due to duration change");
 		}
 		
+	}
+
+	@Override
+	public List<Opportunity> fetchOpportunitiesByWorkbookDataSourceId(Long workbookDataSourceId) {
+		List<Opportunity> opportunities = new ArrayList<Opportunity>(); 
+		opportunityRepository.findByWorkbookDataSourceId(workbookDataSourceId).forEach(opportunities::add);
+		return opportunities;
 	}
 }

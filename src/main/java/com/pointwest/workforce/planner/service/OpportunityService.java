@@ -34,4 +34,6 @@ public interface OpportunityService {
 	
 	public int publishOpportunity(long opportunityId);
 	
+	public List<Opportunity> fetchOpportunitiesByWorkbookDataSourceId(Long workbookDataSourceId);
+	
 }

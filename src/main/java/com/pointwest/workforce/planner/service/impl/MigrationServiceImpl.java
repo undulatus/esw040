@@ -74,6 +74,9 @@ public class MigrationServiceImpl implements MigrationService {
 	
 	@Value("${tnl.col.resource.fte.balance}")
 	private String resourceFteBalanceCol;
+	
+	@Value("${tnl.col.workbookdatasource.id}")
+	private String workbookDataSourceIdCol;
 //end from
 	@Value("${tnl.def.activity.id}")
 	private Integer defaultActivityId;
@@ -83,6 +86,9 @@ public class MigrationServiceImpl implements MigrationService {
 	
 	@Value("${tnl.def.durationgranularity}")
 	private String defaultDurationGranularity;
+	
+	@Value("${tnl.def.documentstatus}")
+	private String defaultDocumentStatus;
 	
 	@Value("${month.to.week.multiplier}")
 	private Integer WEEKSINMONTH;
@@ -168,11 +174,12 @@ public class MigrationServiceImpl implements MigrationService {
 		
 		List<Opportunity> listOfOpportunitiesToSave = new ArrayList<Opportunity>();
 		for (Map.Entry<String ,List<Map<String, Object>>> entry : opportunityCollection.entrySet()) {
-			//BMAB TO DO CREATE PROJ CODE IN OPP OBJECT set here
+			
 			opportunity = new Opportunity();
+			//BMAB REMOVE THIS IF ASKED BY BA opp name
 			opportunity.setOpportunityName(entry.getKey());
 			opportunity.setProjectCode(entry.getKey());
-			opportunity.setDurationGranularity(this.defaultDurationGranularity);
+			
 			opportunityActivities = new ArrayList<OpportunityActivity>();
 			resourceSpecifications = new ArrayList<ResourceSpecification>();
 			
@@ -180,12 +187,16 @@ public class MigrationServiceImpl implements MigrationService {
 			//set defaults
 			opportunityActivity.setActivity(activity);
 			opportunityActivity.setSequenceNo(1);
+			opportunity.setDurationGranularity(this.defaultDurationGranularity);
+			opportunity.setDocumentStatus(this.defaultDocumentStatus);
 			
 			for(Map<String, Object> data : entry.getValue()) {
 				if(isEntryForSaving(data)) {
 					resourceSpecification = this.processResourceSpecificationData(data);
 					resourceSpecification.setResourceSchedule(this.processFTESchedule(data));
 					resourceSpecifications.add(resourceSpecification);
+					//BMAB check for refactoring
+					opportunity.setWorkbookDataSourceId( Long.valueOf( (String) data.get(this.workbookDataSourceIdCol) ) );
 				} else {
 					//next iteration
 				}
@@ -320,7 +331,7 @@ public class MigrationServiceImpl implements MigrationService {
 						key.setResourceSpecificationId(savedResourceSpecification.getResourceSpecificationId());
 						fteWeek.setKey(key);
 						weeklyFTEService.saveWeeklyFTE(fteWeek);
-						log.debug("trying to save fte.. " + key.getResourceSpecificationId());
+						log.debug("saving fte of res spec id.. " + key.getResourceSpecificationId());
 					}
 				}
 			}

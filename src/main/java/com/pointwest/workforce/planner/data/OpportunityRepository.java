@@ -125,4 +125,6 @@ public interface OpportunityRepository extends CrudRepository<Opportunity, Long>
 		, nativeQuery=true)
 	public List<BigInteger> findResourceSpecificationIdsUnderOpportunityId(Long opportunityId);
 	
+	public List<Opportunity> findByWorkbookDataSourceId(Long workbookDataSourceId);
+	
 }
