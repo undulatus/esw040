@@ -59,9 +59,9 @@ public class OpportunityTnlRaw implements Serializable {
 	@Column(name="backfill_supernum")
 	private String backfillSupernum;
 	
-	//Org Role
-	@Column(name="org_role")
-	private String orgRole;
+	//Project Role
+	@Column(name="role")
+	private String role;
 	
 	//Skill Set
 	@Column(name="skill_set")
@@ -142,6 +142,9 @@ public class OpportunityTnlRaw implements Serializable {
 	//Onsite Onboarding Documents
 	@Column(name="onsite_onboarding_documents")
 	private String onsiteOnboardingDocuments;
+	
+	@Column(name="workbook_datasource_id")
+	private Long workbookDatasourceId;
 
 	public Long getOpportunityTnlRawId() {
 		return opportunityTnlRawId;
@@ -215,12 +218,12 @@ public class OpportunityTnlRaw implements Serializable {
 		this.backfillSupernum = backfillSupernum;
 	}
 
-	public String getOrgRole() {
-		return orgRole;
+	public String getRole() {
+		return role;
 	}
 
-	public void setOrgRole(String orgRole) {
-		this.orgRole = orgRole;
+	public void setRole(String role) {
+		this.role = role;
 	}
 
 	public String getSkillSet() {
@@ -381,6 +384,14 @@ public class OpportunityTnlRaw implements Serializable {
 
 	public void setOnsiteOnboardingDocuments(String onsiteOnboardingDocuments) {
 		this.onsiteOnboardingDocuments = onsiteOnboardingDocuments;
+	}
+
+	public Long getWorkbookDatasourceId() {
+		return workbookDatasourceId;
+	}
+
+	public void setWorkbookDatasourceId(Long workbookDatasourceId) {
+		this.workbookDatasourceId = workbookDatasourceId;
 	}
 
 	public static long getSerialversionuid() {

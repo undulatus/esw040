@@ -41,6 +41,9 @@ public class Opportunity extends Auditable implements Serializable {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long opportunityId;
 	
+	@Column(name="project_code")
+	private String projectCode;
+	
 	@Column(name="opportunity_name")
 	private String opportunityName;
 	
@@ -82,6 +85,10 @@ public class Opportunity extends Auditable implements Serializable {
 	@JoinColumn(name="username")
 	private String username;
 	
+	//@OneToOne
+	//@JoinColumn(name="workbook_datasource_id")
+	@Column(name="workbook_datasource_id")
+	private Long workbookDataSourceId;
 	
 	//@OneToMany(mappedBy = "opportunityId", cascade = CascadeType.DETACH)
 	@OneToMany(mappedBy = "opportunityId")
@@ -100,6 +107,14 @@ public class Opportunity extends Auditable implements Serializable {
 
 	public void setOpportunityId(Long opportunityId) {
 		this.opportunityId = opportunityId;
+	}
+
+	public String getProjectCode() {
+		return projectCode;
+	}
+
+	public void setProjectCode(String projectCode) {
+		this.projectCode = projectCode;
 	}
 
 	public String getOpportunityName() {
@@ -223,6 +238,13 @@ public class Opportunity extends Auditable implements Serializable {
 		this.projectEndDate = projectEndDate;
 	}
 	
+	public Long getWorkbookDataSourceId() {
+		return workbookDataSourceId;
+	}
+
+	public void setWorkbookDataSourceId(Long workbookDataSourceId) {
+		this.workbookDataSourceId = workbookDataSourceId;
+	}
 
 	@Override
 	public String toString() {

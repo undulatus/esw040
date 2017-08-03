@@ -8,7 +8,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name="ref_org_role")
+@Table(name="ref_role")
 public class Role {
 	
 	public Role() {
@@ -17,10 +17,10 @@ public class Role {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name="org_role_id")
+	@Column(name="role_id")
 	private int roleId;
 	
-	@Column(name="org_role_name")
+	@Column(name="role_name")
 	private String roleName;
 
 	public int getRoleId() {

@@ -96,6 +96,8 @@ public class OpportunityServiceImpl implements OpportunityService {
 			opportunity.setOpportunityId(opportunityId);
 		// do not save null values but set the previous values into it
 		Opportunity previousOpportunity = opportunityRepository.findOne(opportunityId);
+		if (opportunity.getProjectCode() == null) 
+			opportunity.setProjectCode(previousOpportunity.getProjectCode());
 		if (opportunity.getOpportunityName() == null)
 			opportunity.setOpportunityName(previousOpportunity.getOpportunityName());
 		if (opportunity.getBusinessUnit() == null)
@@ -150,6 +152,9 @@ public class OpportunityServiceImpl implements OpportunityService {
 			opportunity.setProjectAlias(previousOpportunity.getProjectAlias());
 		if (opportunity.getUsername() == null)
 			opportunity.setUsername(previousOpportunity.getUsername());
+		if (opportunity.getWorkbookDataSourceId() == null) {
+			opportunity.setWorkbookDataSourceId(previousOpportunity.getWorkbookDataSourceId());
+		}
 		//if (opportunity.getProjectEndDate() == null) opportunity.setProjectEndDate(previousOpportunity.getProjectEndDate());
 		if (opportunity.getLastModifiedDate() == null) opportunity.setLastModifiedDate(previousOpportunity.getLastModifiedDate());
 		return opportunityRepository.save(opportunity);

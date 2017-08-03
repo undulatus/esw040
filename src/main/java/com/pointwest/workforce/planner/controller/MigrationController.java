@@ -73,13 +73,13 @@ public class MigrationController {
 		List<OpportunityTnl> opList = new ArrayList<OpportunityTnl>();
 		OpportunityTnl opportunityTnl = new OpportunityTnl();
 		Map<String, Object> dataMap = new HashMap<String, Object>();
-		dataMap.put(projectCodeCol, "prj01");
-		dataMap.put(resourceRoleCol, "Software Developer");
+		dataMap.put(projectCodeCol, "prj02");
+		dataMap.put(resourceRoleCol, "Team/Technical Lead");
 		dataMap.put(resourcePracticeCol, "Java");
 		dataMap.put(resourcePayLevelCol, "SE 3");
 		dataMap.put(resourceIsBillableCol, "y");
 		dataMap.put(resourceStartDateCol, "08-21-2017");
-		dataMap.put(resourceEndDateCol, "09-21-2017");
+		dataMap.put(resourceEndDateCol, "01-21-2018");
 		dataMap.put(resourceFteBalanceCol, "1");
 		
 		opportunityTnl.setDataMap(dataMap);

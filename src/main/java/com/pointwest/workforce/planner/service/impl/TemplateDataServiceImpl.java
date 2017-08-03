@@ -46,7 +46,7 @@ public class TemplateDataServiceImpl implements TemplateDataService {
 		@Override
 		public List<Role> fetchRolesByServiceTypeId(int serviceTypeId) {
 			log.debug("MCI >> fetchRolesByServiceTypeId with serviceTypeId: " + serviceTypeId);
-			List<Role> roles = (List<Role>) roleRepository.findRolesByServiceTypeIdOrderByOrgRoleNameAsc(serviceTypeId);
+			List<Role> roles = (List<Role>) roleRepository.findRolesByServiceTypeIdOrderByRoleNameAsc(serviceTypeId);
 			log.debug("MCO >> fetchRolesByServiceTypeId with serviceTypeId: " + serviceTypeId);
 			return roles;
 		}

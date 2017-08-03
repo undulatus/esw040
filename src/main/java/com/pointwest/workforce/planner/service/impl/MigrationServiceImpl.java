@@ -171,6 +171,7 @@ public class MigrationServiceImpl implements MigrationService {
 			//BMAB TO DO CREATE PROJ CODE IN OPP OBJECT set here
 			opportunity = new Opportunity();
 			opportunity.setOpportunityName(entry.getKey());
+			opportunity.setProjectCode(entry.getKey());
 			opportunity.setDurationGranularity(this.defaultDurationGranularity);
 			opportunityActivities = new ArrayList<OpportunityActivity>();
 			resourceSpecifications = new ArrayList<ResourceSpecification>();
