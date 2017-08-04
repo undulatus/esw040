@@ -8,6 +8,8 @@ import com.pointwest.workforce.planner.nonentity.domain.Workbook;
 
 public interface UploadDataService {
 
+	public List<OpportunityTnlRaw> fetchOpportunityTnlRaw(Long workbookDataSourceId);
+	
 	public WorkbookDataSource fetchGBookByUrl(String workbookUrl);
 	
 	public List<WorkbookDataSource> fetchAllWorkbookDataSources();

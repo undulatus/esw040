@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.google.gdata.client.GoogleService;
 import com.google.gdata.data.Person;
@@ -61,6 +60,12 @@ public class UploadDataServiceImpl implements UploadDataService {
 
 	private static final Logger log = LoggerFactory.getLogger(UploadDataServiceImpl.class);
 
+	public List<OpportunityTnlRaw> fetchOpportunityTnlRaw(Long workbookDataSourceId) {
+		List<OpportunityTnlRaw> opportunitTnlRaws = new ArrayList<OpportunityTnlRaw>();
+		opportunityTnlRawRepository.findAll().forEach(opportunitTnlRaws::add);
+		return opportunitTnlRaws;
+	}
+	
 	@Override
 	public List<WorkbookDataSource> fetchAllWorkbookDataSources() {
 		log.debug("MCI >> fetchAllWorkbookDataSources");

@@ -1,9 +1,6 @@
 package com.pointwest.workforce.planner.controller;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,11 +13,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pointwest.workforce.planner.domain.CustomError;
 import com.pointwest.workforce.planner.domain.Opportunity;
-import com.pointwest.workforce.planner.nonentity.domain.OpportunityTnl;
+import com.pointwest.workforce.planner.domain.OpportunityTnlRaw;
 import com.pointwest.workforce.planner.nonentity.domain.Workbook;
 import com.pointwest.workforce.planner.service.MigrationService;
 import com.pointwest.workforce.planner.service.OpportunityService;
+import com.pointwest.workforce.planner.service.UploadDataService;
+import com.pointwest.workforce.planner.ui.adapter.WorkbookAdapter;
 
 @RestController
 public class MigrationController {
@@ -61,14 +61,18 @@ public class MigrationController {
 	@Autowired
 	OpportunityService opportunityService;
 	
+	@Autowired
+	UploadDataService uploadDataService;
+	
+	@Autowired
+	WorkbookAdapter workbookAdapter;
+	
 	private static final Logger log = LoggerFactory.getLogger(MigrationController.class);
 	
 	@RequestMapping(method = RequestMethod.POST, value = "/migration")
 	public ResponseEntity<Object> migrateData(@RequestBody(required = true) Long workbookDataSourceId) {
-		//@PathVariable int workbookDataSourceId
-		//use identifier here
-		//migrationService.deleteTnlOpportunities(identifier);
 		
+/*	
 		//MOCK DATA
 		Workbook workbook = new Workbook();
 		List<OpportunityTnl> opList = new ArrayList<OpportunityTnl>();
@@ -126,9 +130,10 @@ public class MigrationController {
 		//#
 		workbookDataSourceId = Long.valueOf("1");
 		//#
+*/		
+		List<OpportunityTnlRaw> opportunityTnlRaws = uploadDataService.fetchOpportunityTnlRaw(workbookDataSourceId);
 		
-		workbook.setOpportunityTnl(opList);
-		
+		Workbook workbook = workbookAdapter.getWorkbook(opportunityTnlRaws);
 		//delete opportunities uploaded from the same source
 		List<Opportunity> opportunitiesToDelete = opportunityService.fetchOpportunitiesByWorkbookDataSourceId(workbookDataSourceId);
 		for(Opportunity opportunity : opportunitiesToDelete) {
@@ -138,7 +143,11 @@ public class MigrationController {
 		//insert opportunity entries
 		List<Opportunity> opportunities = migrationService.saveTnlOpportunities(workbook);
 		
-		return new ResponseEntity<>(opportunities, HttpStatus.OK);
+		if(opportunities == null) {
+			return new ResponseEntity<>(new CustomError("migration failed"), HttpStatus.BAD_REQUEST);
+		} else {
+			return new ResponseEntity<>(opportunities, HttpStatus.OK);
+		}
 	}
 	
 }

@@ -13,7 +13,7 @@ import com.pointwest.workforce.planner.nonentity.domain.OpportunityTnl;
 import com.pointwest.workforce.planner.nonentity.domain.Workbook;
 
 @Component
-public class WorkbookAdapter extends Workbook{
+public class WorkbookAdapter {
 	
 	@Value("${tnl.col.projectcode}")
 	private String projectCode;
@@ -105,15 +105,12 @@ public class WorkbookAdapter extends Workbook{
 	@Value("${tnl.col.workbookdatasource.id}")
 	private String workbookDataSourceId;
 	
-	private static final long serialVersionUID = 1L;
-	
-	
 	public WorkbookAdapter() {
 		super();
 	}
 	
-	public WorkbookAdapter(List<OpportunityTnlRaw> opportunityTnlRaws) {
-		
+	public Workbook getWorkbook(List<OpportunityTnlRaw> opportunityTnlRaws) {
+		Workbook workbook = new Workbook();
 		List<OpportunityTnl> opportunityTnlList = new ArrayList<OpportunityTnl>();
 		OpportunityTnl opportunityTnl = null;
 		Map<String, Object> dataMap = null;
@@ -157,6 +154,7 @@ public class WorkbookAdapter extends Workbook{
 			opportunityTnlList.add(opportunityTnl);
 		}
 		
-		this.setOpportunityTnl(opportunityTnlList);
+		workbook.setOpportunityTnl(opportunityTnlList);
+		return workbook;
 	}
 }
