@@ -55,6 +55,9 @@ public class ResourceSpecification {
 	@Column(name="resource_specification_total_fte")
 	private Double totalFTE;
 	
+	@Column(name="resource_specification_skillset")
+	private String skillSet;
+	
 	@OneToMany(mappedBy = "key.resourceSpecificationId", cascade = CascadeType.ALL)
 	private List<WeeklyFTE> resourceSchedule;
 	
@@ -137,6 +140,14 @@ public class ResourceSpecification {
 
 	public void setTotalFTE(Double totalFTE) {
 		this.totalFTE = totalFTE;
+	}
+
+	public String getSkillSet() {
+		return skillSet;
+	}
+
+	public void setSkillSet(String skillSet) {
+		this.skillSet = skillSet;
 	}
 	
 	

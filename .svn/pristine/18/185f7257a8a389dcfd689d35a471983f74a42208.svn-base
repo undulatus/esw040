@@ -1,0 +1,55 @@
+###Migration essentials
+##opportunity
+tnl.col.projectcode=projectcoderequiredsingle
+#tnl.col.businessunit=Business Unit
+##resource spec
+tnl.col.resource.role=projectrolerequiredsingle
+#Skillset (Technology/Practice)
+tnl.col.resource.practice=primaryskillsettechnologypracticeoptionalmultiple
+tnl.col.resource.paylevel=payleveloptionalsingle
+#Billable? (Y/N)
+tnl.col.resource.billable=billableynoptionalsingle
+#Estimated Start Date (of Resource)
+tnl.col.resource.startdate=estimatedstartdateoptionalsingle
+#Estimated End Date (of Resource)
+tnl.col.resource.enddate=estimatedenddateoptionalsingle
+##fte
+tnl.col.resource.fte.balance=balancerequired
+
+#update aug 4, now opportunity name, will be updated from project central
+tnl.col.groupproject=projectname
+
+###Non essentials for migration
+tnl.col.daterequested=daterequested
+tnl.col.agilereq=agilereq
+tnl.col.account=account
+tnl.col.backfill=backfillsupernumoptionalmultiple
+tnl.col.location=location
+tnl.col.quantity=qty	
+tnl.col.filled=filled
+tnl.col.datefilled=datefilled
+tnl.col.resource.newhire=newhire
+tnl.col.resource.candidate=candidate
+tnl.col.resource.status=candidatestatus	
+tnl.col.resource.background=background
+tnl.col.resource.comments=comments
+tnl.col.resource.resume=resume
+tnl.col.resource.coc=contingentworkercodeofconduct 
+tnl.col.resource.nda=non-disclosureagreement
+tnl.col.resource.dateofbirth=dateofbirth
+tnl.col.resource.sss=last5digitsofsss
+tnl.col.resource.docs=onsiteonboardingdocuments 
+
+##other columns
+tnl.col.workbookdatasource.id=workbookdatasourceid
+tnl.col.opportunitytnl.id=opportunitytnlid
+tnl.col.rowno=rowno
+
+#defaults
+tnl.def.activity.id=24
+tnl.def.serviceline.id=5
+tnl.def.opportunitystatus.id=1
+tnl.def.durationgranularity=monthly
+tnl.def.documentstatus=published
+tnl.def.rowNumStart=2
+tnl.def.worksheetTnl=Open Requirements
