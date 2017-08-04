@@ -62,6 +62,7 @@ public class ResourceSpecificationServiceImpl implements ResourceSpecificationSe
 		if(resourceSpecification.getRoleStartDate() == null) resourceSpecification.setRoleStartDate(previousResourceSpecification.getRoleStartDate());
 		if(resourceSpecification.getDurationInWeeks() == null) resourceSpecification.setDurationInWeeks(previousResourceSpecification.getDurationInWeeks());
 		if(resourceSpecification.getTotalFTE() == null) resourceSpecification.setTotalFTE(previousResourceSpecification.getTotalFTE());
+		if(resourceSpecification.getSkillSet() == null) resourceSpecification.setSkillSet(previousResourceSpecification.getSkillSet());
 		return resourceSpecificationRepository.save(resourceSpecification);
 	}
 

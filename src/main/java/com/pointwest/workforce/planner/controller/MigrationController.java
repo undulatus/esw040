@@ -28,6 +28,9 @@ public class MigrationController {
 	@Value("${tnl.col.projectcode}")
 	private String projectCodeCol;
 	
+	@Value("${tnl.col.groupproject}")
+	private String opportunityNameCol;
+	
 	@Value("${tnl.col.resource.role}")
 	private String resourceRoleCol;
 	
@@ -60,18 +63,8 @@ public class MigrationController {
 	
 	private static final Logger log = LoggerFactory.getLogger(MigrationController.class);
 	
-	/*@RequestMapping(method=RequestMethod.GET, value="/workbook/raw/tnl")
-    public ResponseEntity<Object> fetchAllOpportunityTnlRaw() {
-       List<OpportunityTnlRaw> opportunityTnlRaws = uploadDataService.fetchAllOpportunityTnlRaw();
-       if(opportunityTnlRaws == null) {
-    	   return new ResponseEntity<>(new CustomError("No list retrieved"), HttpStatus.NOT_FOUND);
-       } else {
-    	   return new ResponseEntity<>(opportunityTnlRaws, HttpStatus.OK);
-       }
-    }*/
-	
 	@RequestMapping(method = RequestMethod.POST, value = "/migration")
-	public ResponseEntity<Object> migrateData(@RequestBody(required = false) Long workbookDataSourceId) {
+	public ResponseEntity<Object> migrateData(@RequestBody(required = true) Long workbookDataSourceId) {
 		//@PathVariable int workbookDataSourceId
 		//use identifier here
 		//migrationService.deleteTnlOpportunities(identifier);
@@ -85,12 +78,13 @@ public class MigrationController {
 		opportunityTnl = new OpportunityTnl();
 		dataMap = new HashMap<String, Object>();
 		dataMap.put(projectCodeCol, "prj01");
+		dataMap.put(opportunityNameCol, "oppy numba 1");
 		dataMap.put(resourceRoleCol, "Team/Technical Lead");
 		dataMap.put(resourcePracticeCol, "Java");
-		dataMap.put(resourcePayLevelCol, "SE 3");
+		dataMap.put(resourcePayLevelCol, "SE3");
 		dataMap.put(resourceIsBillableCol, "y");
-		dataMap.put(resourceStartDateCol, "08-21-2017");
-		dataMap.put(resourceEndDateCol, "10-21-2018");
+		dataMap.put(resourceStartDateCol, "09-21-2017");
+		dataMap.put(resourceEndDateCol, "12-21-2018");
 		dataMap.put(resourceFteBalanceCol, "1");
 		dataMap.put(workbookDataSourceIdCol, "1");
 		opportunityTnl.setDataMap(dataMap);
@@ -100,12 +94,13 @@ public class MigrationController {
 		opportunityTnl = new OpportunityTnl();
 		dataMap = new HashMap<String, Object>();
 		dataMap.put(projectCodeCol, "prj01");
+		dataMap.put(opportunityNameCol, "oppy numba 1");
 		dataMap.put(resourceRoleCol, "QA Analyst");
 		dataMap.put(resourcePracticeCol, "Java");
-		dataMap.put(resourcePayLevelCol, "SE 3");
+		dataMap.put(resourcePayLevelCol, "SE4");
 		dataMap.put(resourceIsBillableCol, "y");
-		dataMap.put(resourceStartDateCol, "08-21-2017");
-		dataMap.put(resourceEndDateCol, "11-21-2018");
+		dataMap.put(resourceStartDateCol, "10-21-2017");
+		dataMap.put(resourceEndDateCol, "12-21-2018");
 		dataMap.put(resourceFteBalanceCol, "3");
 		dataMap.put(workbookDataSourceIdCol, "1");
 		opportunityTnl.setDataMap(dataMap);
@@ -115,11 +110,12 @@ public class MigrationController {
 		opportunityTnl = new OpportunityTnl();
 		dataMap = new HashMap<String, Object>();
 		dataMap.put(projectCodeCol, "prj02");
+		dataMap.put(opportunityNameCol, "oppy numba 2");
 		dataMap.put(resourceRoleCol, "Developer");
 		dataMap.put(resourcePracticeCol, "Java");
-		dataMap.put(resourcePayLevelCol, "SE 3");
+		dataMap.put(resourcePayLevelCol, "SE3");
 		dataMap.put(resourceIsBillableCol, "y");
-		dataMap.put(resourceStartDateCol, "08-21-2017");
+		dataMap.put(resourceStartDateCol, "11-21-2017");
 		dataMap.put(resourceEndDateCol, "12-21-2018");
 		dataMap.put(resourceFteBalanceCol, "1");
 		dataMap.put(workbookDataSourceIdCol, "1");
