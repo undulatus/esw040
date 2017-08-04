@@ -1,5 +1,7 @@
 package com.pointwest.workforce.planner.service.impl;
 
+import java.math.BigDecimal;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,11 +13,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.pointwest.workforce.planner.domain.Activity;
 import com.pointwest.workforce.planner.domain.BusinessUnit;
 import com.pointwest.workforce.planner.domain.Opportunity;
 import com.pointwest.workforce.planner.domain.OpportunityActivity;
+import com.pointwest.workforce.planner.domain.OpportunityStatus;
 import com.pointwest.workforce.planner.domain.PayLevel;
 import com.pointwest.workforce.planner.domain.Practice;
 import com.pointwest.workforce.planner.domain.ResourceSpecification;
@@ -65,7 +70,7 @@ public class MigrationServiceImpl implements MigrationService {
 
 	@Value("${tnl.col.resource.billable}")
 	private String resourceIsBillableCol;
-//from
+
 	@Value("${tnl.col.resource.startdate}")
 	private String resourceStartDateCol;
 
@@ -76,13 +81,20 @@ public class MigrationServiceImpl implements MigrationService {
 	private String resourceFteBalanceCol;
 	
 	@Value("${tnl.col.workbookdatasource.id}")
-	private String workbookDataSourceIdCol;
-//end from
+	private String workbookDataSourceIdCol;	
+
+	@Value("${tnl.col.groupproject}")
+	private String opportunityNameCol;
+	
+//end cols
 	@Value("${tnl.def.activity.id}")
 	private Integer defaultActivityId;
 	
 	@Value("${tnl.def.serviceline.id}")
 	private Integer defaultServiceLineId;
+	
+	@Value("${tnl.def.opportunitystatus.id}")
+	private Integer defaultOpportunityStatusId;
 	
 	@Value("${tnl.def.durationgranularity}")
 	private String defaultDurationGranularity;
@@ -163,10 +175,12 @@ public class MigrationServiceImpl implements MigrationService {
 	private List<Opportunity> transformToOpportunityList(Map<String, List<Map<String, Object>>> opportunityCollection) {
 		Opportunity opportunity = null;
 		
+		//BMAB set default attribute objects
 		Activity activity = new Activity();
-		//BMAB set default activity value
-		activity.setActivityId(this.defaultActivityId.intValue());
-
+		activity.setActivityId(this.defaultActivityId);
+		OpportunityStatus opportunityStatus = new OpportunityStatus();
+		opportunityStatus.setOpportunityStatusId(this.defaultOpportunityStatusId);
+		
 		List<OpportunityActivity> opportunityActivities = null;
 		OpportunityActivity opportunityActivity = null;
 		List<ResourceSpecification> resourceSpecifications = null;
@@ -177,16 +191,17 @@ public class MigrationServiceImpl implements MigrationService {
 			
 			opportunity = new Opportunity();
 			//BMAB REMOVE THIS IF ASKED BY BA opp name
-			opportunity.setOpportunityName(entry.getKey());
+			//opportunity.setOpportunityName(entry.getKey());
 			opportunity.setProjectCode(entry.getKey());
 			
 			opportunityActivities = new ArrayList<OpportunityActivity>();
 			resourceSpecifications = new ArrayList<ResourceSpecification>();
 			
 			opportunityActivity = new OpportunityActivity();
-			//set defaults
+			//BMAB set defaults
 			opportunityActivity.setActivity(activity);
 			opportunityActivity.setSequenceNo(1);
+			opportunity.setOpportunityStatus(opportunityStatus);
 			opportunity.setDurationGranularity(this.defaultDurationGranularity);
 			opportunity.setDocumentStatus(this.defaultDocumentStatus);
 			
@@ -195,8 +210,9 @@ public class MigrationServiceImpl implements MigrationService {
 					resourceSpecification = this.processResourceSpecificationData(data);
 					resourceSpecification.setResourceSchedule(this.processFTESchedule(data));
 					resourceSpecifications.add(resourceSpecification);
-					//BMAB check for refactoring
-					opportunity.setWorkbookDataSourceId( Long.valueOf( (String) data.get(this.workbookDataSourceIdCol) ) );
+					//BMAB check for refactoring, oppname and sourceid will be set to the last entry values
+					opportunity.setOpportunityName( (String) data.get(this.opportunityNameCol));
+					opportunity.setWorkbookDataSourceId( (Long) data.get(this.workbookDataSourceIdCol) );
 				} else {
 					//next iteration
 				}
@@ -233,9 +249,13 @@ public class MigrationServiceImpl implements MigrationService {
 		PayLevel payLevel = payLevelMap.get(payLevelName);
 		resourceSpecification.setPayLevel(payLevel);
 		
-		String practiceName = (String) data.get(this.resourcePracticeCol);
+		//BMAB update aug 4 removed saved as text in a new col for now
+		/*String practiceName = (String) data.get(this.resourcePracticeCol);
 		Practice practice = practiceMap.get(practiceName);
-		resourceSpecification.setPractice(practice);
+		resourceSpecification.setPractice(practice);*/
+		
+		String skillSet = (String) data.get(this.resourcePracticeCol);
+		resourceSpecification.setSkillSet(skillSet);
 		
 		String isBillableString = (String) data.get(this.resourceIsBillableCol);
 		isBillableString = isBillableString.toLowerCase().trim();
@@ -244,6 +264,23 @@ public class MigrationServiceImpl implements MigrationService {
 		} else { 
 			resourceSpecification.setBillable(false);
 		}
+		
+		//date related data block
+		String startDateString = (String) data.get(this.resourceStartDateCol);
+		String endDateString = (String) data.get(this.resourceEndDateCol);
+		LocalDate startDate = DateUtil.stringToDate(startDateString);
+		LocalDate endDate = DateUtil.stringToDate(endDateString);
+		Date roleStartDate = Date.valueOf(startDate);
+		Integer durationInWeeks = DateUtil.getWeeks(startDate, endDate, this.WEEKSINMONTH);
+		Double balance = Double.valueOf( (String) data.get(this.resourceFteBalanceCol) );
+		Double totalFte = durationInWeeks * balance;
+		//end date data block
+		resourceSpecification.setRoleStartDate(roleStartDate);
+		resourceSpecification.setDurationInWeeks(durationInWeeks.doubleValue());
+		//5 decimal precision
+		BigDecimal fte = new BigDecimal(Double.toString(totalFte)).setScale(5, BigDecimal.ROUND_HALF_UP);
+		String sFte = fte.toString();
+		resourceSpecification.setTotalFTE(Double.parseDouble(sFte));
 		
 		return resourceSpecification ;
 	}
@@ -268,7 +305,7 @@ public class MigrationServiceImpl implements MigrationService {
 			}
 			
 		} catch(Exception e) {
-			log.debug(" no entries for fte may not be valid ");
+			log.debug(" no entries for fte, dates invalid ");
 			weeklyFTE = null;
 		}
 		log.debug("upload fte size " + weeklyFTEs.size());
@@ -283,60 +320,71 @@ public class MigrationServiceImpl implements MigrationService {
 		this.roleMap = this.mapRole();
 		this.practiceMap = this.mapPractice();
 		this.payLevelMap = this.mapPayLevel();
-		
-		List<Map<String,Object>> listOfEntries = new ArrayList<Map<String,Object>>();
-		for(OpportunityTnl entry : tnlWorkbook.getOpportunityTnl()) {
-			listOfEntries.add(entry.getDataMap());
+		List<Opportunity> savedOpportunities = null;
+		try {
+			List<Map<String,Object>> listOfEntries = new ArrayList<Map<String,Object>>();
+			for(OpportunityTnl entry : tnlWorkbook.getOpportunityTnl()) {
+				listOfEntries.add(entry.getDataMap());
+			}
+			Map<String, List<Map<String, Object>>> opportunityCollection = this.segregateOpportunities(listOfEntries);
+			List<Opportunity> opportunitiesToSave = this.transformToOpportunityList(opportunityCollection);
+			savedOpportunities = this.saveData(opportunitiesToSave);
+		} catch(Exception e) {
+			log.error("error in migration of uploaded data" );
+			log.error(e.getMessage());
+			savedOpportunities = null;
 		}
-		Map<String, List<Map<String, Object>>> opportunityCollection = this.segregateOpportunities(listOfEntries);
-		List<Opportunity> opportunitiesToSave = this.transformToOpportunityList(opportunityCollection);
-		List<Opportunity> savedOpportunities = this.saveData(opportunitiesToSave);
-		
 		return savedOpportunities;
 	}
-	
+
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
 	private List<Opportunity> saveData(List<Opportunity> opportunities) {
 		List<Opportunity> savedOpportunities = new ArrayList<Opportunity>();
-		Opportunity savedOpportunity = null;
-		OpportunityActivity savedOpportunityActivity = null;
-		ResourceSpecification savedResourceSpecification = null;
-		Long opportunityId = null;
-		Long opportunityActivityId = null;
-		List<OpportunityActivity> oppa = null;
-		List<ResourceSpecification> ress = null;
-		List<WeeklyFTE> fteWeeks = null;
-		WeeklyFTEKey key = null;
-		for(Opportunity opportunity : opportunities) {
-			oppa = opportunity.getOpportunityActivities();
-			opportunity.setOpportunityActivities(null);
-			savedOpportunity = opportunityService.saveOpportunity(opportunity);
-			opportunityId = savedOpportunity.getOpportunityId();
-			log.debug("upload saved opp id : " + opportunityId);
-			for(OpportunityActivity oppAct : oppa) {				
-				ress = oppAct.getResourceSpecificationList();
-				oppAct.setResourceSpecificationList(null);
-				oppAct.setOpportunityId(opportunityId);
-				savedOpportunityActivity = opportunityActivityService.saveOpportunityActivity(oppAct);
-				opportunityActivityId = savedOpportunityActivity.getOpportunityActivityId();
-				log.debug("upload oppAct act id " + savedOpportunityActivity.getActivity().getActivityId());
-				log.debug("upload oppAct transact id " + opportunityActivityId);
-				for(ResourceSpecification resSpec : ress) {
-					resSpec.setOpportunityActivityId(opportunityActivityId);
-					fteWeeks = resSpec.getResourceSchedule();
-					resSpec.setResourceSchedule(null);
-					savedResourceSpecification = resourceSpecificationService.saveResourceSpecification(resSpec);
-					log.debug("upload resSpec id " + savedResourceSpecification.getResourceSpecificationId());
-					for(WeeklyFTE fteWeek : fteWeeks) {
-						key = fteWeek.getKey();
-						key.setResourceSpecificationId(savedResourceSpecification.getResourceSpecificationId());
-						fteWeek.setKey(key);
-						weeklyFTEService.saveWeeklyFTE(fteWeek);
-						log.debug("saving fte of res spec id.. " + key.getResourceSpecificationId());
+		try {
+			Opportunity savedOpportunity = null;
+			OpportunityActivity savedOpportunityActivity = null;
+			ResourceSpecification savedResourceSpecification = null;
+			Long opportunityId = null;
+			Long opportunityActivityId = null;
+			List<OpportunityActivity> oppa = null;
+			List<ResourceSpecification> ress = null;
+			List<WeeklyFTE> fteWeeks = null;
+			WeeklyFTEKey key = null;
+			for(Opportunity opportunity : opportunities) {
+				oppa = opportunity.getOpportunityActivities();
+				opportunity.setOpportunityActivities(null);
+				savedOpportunity = opportunityService.saveOpportunity(opportunity);
+				opportunityId = savedOpportunity.getOpportunityId();
+				log.debug("upload saved opp id : " + opportunityId);
+				for(OpportunityActivity oppAct : oppa) {				
+					ress = oppAct.getResourceSpecificationList();
+					oppAct.setResourceSpecificationList(null);
+					oppAct.setOpportunityId(opportunityId);
+					savedOpportunityActivity = opportunityActivityService.saveOpportunityActivity(oppAct);
+					opportunityActivityId = savedOpportunityActivity.getOpportunityActivityId();
+					log.debug("upload oppAct act id " + savedOpportunityActivity.getActivity().getActivityId());
+					log.debug("upload oppAct transact id " + opportunityActivityId);
+					for(ResourceSpecification resSpec : ress) {
+						resSpec.setOpportunityActivityId(opportunityActivityId);
+						fteWeeks = resSpec.getResourceSchedule();
+						resSpec.setResourceSchedule(null);
+						savedResourceSpecification = resourceSpecificationService.saveResourceSpecification(resSpec);
+						log.debug("upload resSpec id " + savedResourceSpecification.getResourceSpecificationId());
+						for(WeeklyFTE fteWeek : fteWeeks) {
+							key = fteWeek.getKey();
+							key.setResourceSpecificationId(savedResourceSpecification.getResourceSpecificationId());
+							fteWeek.setKey(key);
+							weeklyFTEService.saveWeeklyFTE(fteWeek);
+							log.debug("saving fte of res spec id.. " + key.getResourceSpecificationId());
+						}
 					}
 				}
+				savedOpportunities.add(opportunityService.fetchOpportunity(opportunityId));
+					
 			}
-			savedOpportunities.add(opportunityService.fetchOpportunity(opportunityId));
-				
+		} catch(Exception e) {
+			log.error("Error in migration " + e.getMessage());
+			savedOpportunities = null;
 		}
 		return savedOpportunities;
 	}
