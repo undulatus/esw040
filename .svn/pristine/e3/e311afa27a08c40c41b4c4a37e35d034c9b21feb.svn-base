@@ -76,7 +76,6 @@ public class MigrationController {
 		//use identifier here
 		//migrationService.deleteTnlOpportunities(identifier);
 		
-		//MOCK DATA
 		Workbook workbook = new Workbook();
 		List<OpportunityTnl> opList = new ArrayList<OpportunityTnl>();
 		OpportunityTnl opportunityTnl = null;
