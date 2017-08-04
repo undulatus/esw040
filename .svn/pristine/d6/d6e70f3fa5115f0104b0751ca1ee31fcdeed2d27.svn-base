@@ -23,10 +23,6 @@ public interface UploadDataService {
 	public WorkbookDataSource saveGoogleWorkbook(String workbookUrl, String validationStatus);
 	
 	public void updateStartUploadValidationStatus(WorkbookDataSource workbookDataSource);
-	
-	public void updateValidationStatus(WorkbookDataSource workbookDataSource, String status);
-	
-	public void updateMigrationStatus(WorkbookDataSource workbookDataSource, String status);
 
 	public Workbook extractGoogleWorkbook(WorkbookDataSource workbookDataSource, Long workbookDataSourceId) throws Exception;
 

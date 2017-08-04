@@ -26,7 +26,6 @@ import com.google.gdata.util.ServiceException;
 import com.pointwest.workforce.planner.constants.ESWConstants;
 import com.pointwest.workforce.planner.data.OpportunityTnlRawRepository;
 import com.pointwest.workforce.planner.data.WorkbookDataSourceRepository;
-import com.pointwest.workforce.planner.domain.BusinessUnit;
 import com.pointwest.workforce.planner.domain.OpportunityTnlRaw;
 import com.pointwest.workforce.planner.domain.WorkbookDataSource;
 import com.pointwest.workforce.planner.nonentity.domain.OpportunityTnl;
@@ -114,10 +113,7 @@ public class UploadDataServiceImpl implements UploadDataService {
 	public WorkbookDataSource saveGoogleWorkbook(String workbookUrl, String validationStatus) {
 		Date date = new Date();
 		WorkbookDataSource workbookDataSource = new WorkbookDataSource(workbookUrl, date, "Google Sheet", validationStatus, SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString());
-		//TODO: refactor static business unit
-		BusinessUnit tnl = new BusinessUnit();
-		tnl.setBusinessUnitId(2);
-		workbookDataSource.setBusinessUnit(tnl);
+		
 		WorkbookDataSource saved = workbookDataSourceRepository.save(workbookDataSource);
 		
 		return saved;
@@ -131,7 +127,7 @@ public class UploadDataServiceImpl implements UploadDataService {
 
 	@Override
 	public Workbook extractGoogleWorkbook(WorkbookDataSource workbookDataSource, Long workbookDataSourceId) throws Exception {
-		String key = KeyUtil.getKey(workbookDataSource.getUrl());
+		String key = KeyUtil.getKey(workbookDataSource);
 		
 		Workbook workbook = new Workbook();
 		
@@ -182,7 +178,6 @@ public class UploadDataServiceImpl implements UploadDataService {
 			    // Get the worksheet's title, row count, and column count.
 				  if (worksheet.getTitle().getPlainText().contains(worksheetTnl)) {
 					  worksheetFile =  worksheet;
-					  break;
 				  }
 			  }
 		      
@@ -222,17 +217,5 @@ public class UploadDataServiceImpl implements UploadDataService {
 			return workbook;
 			
 		}
-
-	@Override
-	public void updateValidationStatus(WorkbookDataSource workbookDataSource, String statusValid) {
-		System.out.println(workbookDataSource.getWorkbookDataSourceId() + " " +  statusValid);
-		workbookDataSourceRepository.updateValidationStatus(workbookDataSource.getWorkbookDataSourceId(), statusValid);
-		
-	}
-
-	@Override
-	public void updateMigrationStatus(WorkbookDataSource workbookDataSource, String statusMigrate) {
-		workbookDataSourceRepository.updateMigrationStatus(workbookDataSource.getWorkbookDataSourceId(), statusMigrate);
-	}
 	
 }

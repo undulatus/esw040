@@ -57,34 +57,25 @@ public class MigrationController {
 	
 	@RequestMapping(method = RequestMethod.POST, value = "/migration")
 	public ResponseEntity<Object> migrateData(@RequestBody(required = true) Long workbookDataSourceId) {
-		WorkbookDataSource workbookDataSource = null;
-		List<Opportunity> opportunities = null;
-		try {
-			workbookDataSource = uploadDataService.fetchWorkbookDataSource(workbookDataSourceId);
-			
-			uploadDataService.updateMigrationStatus(workbookDataSource, migrationStatusOngoing);
-			String owner = workbookDataSource.getOwner();
-			Integer businessUnitId = workbookDataSource.getBusinessUnit().getBusinessUnitId();
 		
-			
-			List<OpportunityTnlRaw> opportunityTnlRaws = uploadDataService.fetchOpportunityTnlRaw(workbookDataSourceId);
-			
-			Workbook workbook = workbookAdapter.getWorkbook(opportunityTnlRaws);
-			//delete opportunities uploaded from the same source
-			List<Opportunity> opportunitiesToDelete = opportunityService.fetchOpportunitiesByWorkbookDataSourceId(workbookDataSourceId);
-			for(Opportunity opportunity : opportunitiesToDelete) {
-				opportunityService.deleteOpportunity(opportunity.getOpportunityId());
-				log.debug("migration.. purging opportunity with id " + opportunity.getOpportunityId());
-			}
-			//insert opportunity entries
-			opportunities = migrationService.saveTnlOpportunities(workbook, owner, businessUnitId);
-		} catch(Exception e) {
-			log.error("migration failed");
-			log.error(e.getMessage());
-			e.printStackTrace();
-			uploadDataService.updateMigrationStatus(workbookDataSource, migrationStatusFailed);
-			return new ResponseEntity<>(new CustomError("migration failed"), HttpStatus.INTERNAL_SERVER_ERROR);
+		WorkbookDataSource workbookDataSource = uploadDataService.fetchWorkbookDataSource(workbookDataSourceId);
+		
+		uploadDataService.updateMigrationStatus(workbookDataSource, migrationStatusOngoing);
+		String owner = workbookDataSource.getOwner();
+		Integer businessUnitId = workbookDataSource.getBusinessUnit().getBusinessUnitId();
+		
+		List<OpportunityTnlRaw> opportunityTnlRaws = uploadDataService.fetchOpportunityTnlRaw(workbookDataSourceId);
+		
+		Workbook workbook = workbookAdapter.getWorkbook(opportunityTnlRaws);
+		//delete opportunities uploaded from the same source
+		List<Opportunity> opportunitiesToDelete = opportunityService.fetchOpportunitiesByWorkbookDataSourceId(workbookDataSourceId);
+		for(Opportunity opportunity : opportunitiesToDelete) {
+			opportunityService.deleteOpportunity(opportunity.getOpportunityId());
+			log.debug("migration.. purging opportunity with id " + opportunity.getOpportunityId());
 		}
+		//insert opportunity entries
+		List<Opportunity> opportunities = migrationService.saveTnlOpportunities(workbook, owner, businessUnitId);
+		
 		if(opportunities == null) {
 			uploadDataService.updateMigrationStatus(workbookDataSource, migrationStatusFailed);
 			return new ResponseEntity<>(new CustomError("migration failed"), HttpStatus.BAD_REQUEST);

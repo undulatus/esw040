@@ -39,24 +39,4 @@ public interface WorkbookDataSourceRepository extends CrudRepository<WorkbookDat
 			" WHERE workbook_datasource_id = ?1"
 			, nativeQuery=true)
 	public void updateRequiredFields(Long id, String owner, String Filename, int entry, int businessUnitId);
-	
-	@Transactional
-	@Modifying
-	@Query(value= 
-			" UPDATE workbook_datasource" +
-					" SET" +
-					" workbook_datasource_validation_status = ?2" +
-					" WHERE workbook_datasource_id = ?1"
-			, nativeQuery=true)
-	public void updateValidationStatus(Long id, String validationStatus);
-	
-	@Transactional
-	@Modifying
-	@Query(value= 
-			" UPDATE workbook_datasource" +
-					" SET" +
-					" workbook_datasource_migration_status = ?2" +
-					" WHERE workbook_datasource_id = ?1"
-			, nativeQuery=true)
-	public void updateMigrationStatus(Long id, String migrationStatus);
 }

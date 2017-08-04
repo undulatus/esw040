@@ -26,7 +26,6 @@ import com.google.gdata.util.ServiceException;
 import com.pointwest.workforce.planner.constants.ESWConstants;
 import com.pointwest.workforce.planner.data.OpportunityTnlRawRepository;
 import com.pointwest.workforce.planner.data.WorkbookDataSourceRepository;
-import com.pointwest.workforce.planner.domain.BusinessUnit;
 import com.pointwest.workforce.planner.domain.OpportunityTnlRaw;
 import com.pointwest.workforce.planner.domain.WorkbookDataSource;
 import com.pointwest.workforce.planner.nonentity.domain.OpportunityTnl;
@@ -114,10 +113,7 @@ public class UploadDataServiceImpl implements UploadDataService {
 	public WorkbookDataSource saveGoogleWorkbook(String workbookUrl, String validationStatus) {
 		Date date = new Date();
 		WorkbookDataSource workbookDataSource = new WorkbookDataSource(workbookUrl, date, "Google Sheet", validationStatus, SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString());
-		//TODO: refactor static business unit
-		BusinessUnit tnl = new BusinessUnit();
-		tnl.setBusinessUnitId(2);
-		workbookDataSource.setBusinessUnit(tnl);
+		
 		WorkbookDataSource saved = workbookDataSourceRepository.save(workbookDataSource);
 		
 		return saved;

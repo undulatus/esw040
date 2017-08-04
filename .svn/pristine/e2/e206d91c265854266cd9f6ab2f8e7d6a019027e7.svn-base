@@ -223,9 +223,6 @@ public class MigrationServiceImpl implements MigrationService {
 			opportunity.setDurationGranularity(this.defaultDurationGranularity);
 			opportunity.setDocumentStatus(this.defaultDocumentStatus);
 			
-			LocalDate minDate = null;
-			LocalDate maxDate = null;
-			
 			for(Map<String, Object> data : entry.getValue()) {
 				if(isEntryForSaving(data)) {
 					resourceSpecification = this.processResourceSpecificationData(data);
@@ -234,15 +231,8 @@ public class MigrationServiceImpl implements MigrationService {
 					//BMAB check for refactoring, oppname and sourceid will be set to the last entry values
 					//opportunity.setOpportunityName( (String) data.get(this.opportunityNameCol));
 					//opportunity.setWorkbookDataSourceId( (Long) data.get(this.workbookDataSourceIdCol) );
-					
-					if(data.get(this.resourceStartDateCol) != null) {
-						minDate = this.getEarlierDate(minDate, DateUtil.stringToDate((String) data.get(this.resourceStartDateCol)));
-					}	
-					if(data.get(this.resourceEndDateCol) != null) {
-						maxDate = this.getLaterDate(minDate, DateUtil.stringToDate((String) data.get(this.resourceEndDateCol)));
-					}
-					opportunity = this.processOpportunityData(opportunity, data, minDate, maxDate);
-					opportunityActivity = this.proccessOpportunityActivityData(opportunityActivity, data, minDate, maxDate);
+					opportunity = this.processOpportunityData(opportunity, data);
+					opportunityActivity = this.proccessOpportunityActivityData(opportunityActivity, data);
 				} else {
 					//next iteration
 				}
@@ -258,44 +248,16 @@ public class MigrationServiceImpl implements MigrationService {
 		
 	}
 	
-	private LocalDate getEarlierDate(LocalDate date1, LocalDate date2) {
-		if(date1 != null) {
-			if(date1.isBefore(date2)) { 
-				return date1;
-			} else {
-				return date2;
-			}
-		} else {
-			return date2;
-		}
-	}
-	
-	private LocalDate getLaterDate(LocalDate date1, LocalDate date2) {
-		if(date1 != null) {
-			if(date1.isAfter(date2)) { 
-				return date1;
-			} else {
-				return date2;
-			}
-		} else {
-			return date2;
-		}
-	}
-	
-	private Opportunity processOpportunityData(Opportunity opportunity, Map<String, Object> data, LocalDate startDate, LocalDate endDate) {
+	private Opportunity processOpportunityData(Opportunity opportunity, Map<String, Object> data) {
 		opportunity.setOpportunityName( (String) data.get(this.opportunityNameCol));
 		opportunity.setWorkbookDataSourceId( (Long) data.get(this.workbookDataSourceIdCol) );
 		//date related data block
-		/*String startDateString = (String) data.get(this.resourceStartDateCol);
+		String startDateString = (String) data.get(this.resourceStartDateCol);
 		String endDateString = (String) data.get(this.resourceEndDateCol);
 		LocalDate startDate = DateUtil.stringToDate(startDateString);
-		LocalDate endDate = DateUtil.stringToDate(endDateString);*/
-		Date oppStartDate = null;
-		Date oppEndDate = null;
-		if(startDate != null && endDate != null) {
-			oppStartDate = Date.valueOf(startDate);
-			oppEndDate = Date.valueOf(endDate);
-		}
+		LocalDate endDate = DateUtil.stringToDate(endDateString);
+		Date oppStartDate = Date.valueOf(startDate);
+		Date oppEndDate = Date.valueOf(endDate);
 		Integer durationInWeeks = DateUtil.getWeeks(startDate, endDate, this.WEEKSINMONTH);
 		opportunity.setProjectStartDate(oppStartDate);
 		opportunity.setProjectEndDate(oppEndDate);
@@ -305,17 +267,13 @@ public class MigrationServiceImpl implements MigrationService {
 		return opportunity;
 	}
 	
-	private OpportunityActivity proccessOpportunityActivityData(OpportunityActivity opportunityActivity, Map<String, Object> data, LocalDate startDate, LocalDate endDate) {
+	private OpportunityActivity proccessOpportunityActivityData(OpportunityActivity opportunityActivity, Map<String, Object> data) {
 		//date related data block
-		/*String startDateString = (String) data.get(this.resourceStartDateCol);
+		String startDateString = (String) data.get(this.resourceStartDateCol);
 		String endDateString = (String) data.get(this.resourceEndDateCol);
 		LocalDate startDate = DateUtil.stringToDate(startDateString);
-		LocalDate endDate = DateUtil.stringToDate(endDateString);*/
-		
-		Date oppActStartDate = null;
-		if(startDate != null && endDate != null) {
-			oppActStartDate = Date.valueOf(startDate);
-		}
+		LocalDate endDate = DateUtil.stringToDate(endDateString);
+		Date oppActStartDate = Date.valueOf(startDate);
 		Integer durationInWeeks = DateUtil.getWeeks(startDate, endDate, this.WEEKSINMONTH);
 		opportunityActivity.setActivityStartDate(oppActStartDate);
 		opportunityActivity.setDurationInWeeks(durationInWeeks.doubleValue());
@@ -364,11 +322,7 @@ public class MigrationServiceImpl implements MigrationService {
 		String endDateString = (String) data.get(this.resourceEndDateCol);
 		LocalDate startDate = DateUtil.stringToDate(startDateString);
 		LocalDate endDate = DateUtil.stringToDate(endDateString);
-		Date roleStartDate = null;
-		if(startDate != null && endDate != null) {
-			roleStartDate = Date.valueOf(startDate);
-		}
-		
+		Date roleStartDate = Date.valueOf(startDate);
 		Integer durationInWeeks = DateUtil.getWeeks(startDate, endDate, this.WEEKSINMONTH);
 		Double balance = Double.valueOf( (String) data.get(this.resourceFteBalanceCol) );
 		Double totalFte = durationInWeeks * balance;
@@ -404,7 +358,6 @@ public class MigrationServiceImpl implements MigrationService {
 			
 		} catch(Exception e) {
 			log.debug(" no entries for fte, dates invalid ");
-			e.printStackTrace();
 			weeklyFTE = null;
 		}
 		log.debug("upload fte size " + weeklyFTEs.size());
@@ -432,7 +385,6 @@ public class MigrationServiceImpl implements MigrationService {
 		} catch(Exception e) {
 			log.error("error in migration of uploaded data" );
 			log.error(e.getMessage());
-			e.printStackTrace();
 			savedOpportunities = null;
 		}
 		return savedOpportunities;
@@ -485,7 +437,6 @@ public class MigrationServiceImpl implements MigrationService {
 			}
 		} catch(Exception e) {
 			log.error("Error in migration " + e.getMessage());
-			e.printStackTrace();
 			savedOpportunities = null;
 		}
 		return savedOpportunities;

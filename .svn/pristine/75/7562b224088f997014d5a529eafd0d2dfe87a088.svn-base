@@ -81,7 +81,6 @@ public class MigrationController {
 		} catch(Exception e) {
 			log.error("migration failed");
 			log.error(e.getMessage());
-			e.printStackTrace();
 			uploadDataService.updateMigrationStatus(workbookDataSource, migrationStatusFailed);
 			return new ResponseEntity<>(new CustomError("migration failed"), HttpStatus.INTERNAL_SERVER_ERROR);
 		}

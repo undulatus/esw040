@@ -1,0 +1,160 @@
+package com.pointwest.workforce.planner.ui.adapter;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import com.pointwest.workforce.planner.domain.OpportunityTnlRaw;
+import com.pointwest.workforce.planner.nonentity.domain.OpportunityTnl;
+import com.pointwest.workforce.planner.nonentity.domain.Workbook;
+
+@Component
+public class WorkbookAdapter {
+	
+	@Value("${tnl.col.projectcode}")
+	private String projectCode;
+	
+	@Value("${tnl.col.resource.role}")
+	private String role;
+	
+	@Value("${tnl.col.resource.practice}")
+	private String practice;
+	
+	@Value("${tnl.col.resource.paylevel}")
+	private String payLevel;
+	
+	@Value("${tnl.col.location}")
+	private String location;
+	
+	@Value("${tnl.col.resource.billable}")
+	private String billable;
+	
+	@Value("${tnl.col.resource.startdate}")
+	private String estimatedStartDate;
+	
+	@Value("${tnl.col.resource.enddate}")
+	private String estimateEndDate;
+	
+	@Value("${tnl.col.resource.fte.balance}")
+	private String balance;
+	
+	@Value("${tnl.col.daterequested}")
+	private String dateRequested;
+	
+	@Value("${tnl.col.agilereq}")
+	private String agileReq;
+	
+	@Value("${tnl.col.account}")
+	private String account;
+	
+	@Value("${tnl.col.groupproject}")
+	private String groupProject;
+	
+	@Value("${tnl.col.backfill}")
+	private String backfillSupernum;
+	
+	@Value("${tnl.col.quantity}")
+	private String qty;
+	
+	@Value("${tnl.col.filled}")
+	private String filled;
+	
+	@Value("${tnl.col.datefilled}")
+	private String dateFilled;
+	
+	@Value("${tnl.col.resource.newhire}")
+	private String newHire;
+	
+	@Value("${tnl.col.resource.candidate}")
+	private String candidate;
+	
+	@Value("${tnl.col.resource.status}")
+	private String candidateStatus;
+	
+	@Value("${tnl.col.resource.status}")
+	private String status;
+	
+	@Value("${tnl.col.resource.background}")
+	private String background;
+	
+	@Value("${tnl.col.resource.comments}")
+	private String comments;
+	
+	@Value("${tnl.col.resource.resume}")
+	private String resume;
+	
+	@Value("${tnl.col.resource.coc}")
+	private String coc;
+	
+	@Value("${tnl.col.resource.nda}")
+	private String nda;
+	
+	@Value("${tnl.col.resource.dateofbirth}")
+	private String dateOfBirth;
+	
+	@Value("${tnl.col.resource.sss}")
+	private String sss;
+	
+	@Value("${tnl.col.resource.docs}")
+	private String docs;
+	
+	@Value("${tnl.col.workbookdatasource.id}")
+	private String workbookDataSourceId;
+	
+	public WorkbookAdapter() {
+		super();
+	}
+	
+	public Workbook getWorkbook(List<OpportunityTnlRaw> opportunityTnlRaws) {
+		Workbook workbook = new Workbook();
+		List<OpportunityTnl> opportunityTnlList = new ArrayList<OpportunityTnl>();
+		OpportunityTnl opportunityTnl = null;
+		Map<String, Object> dataMap = null;
+		
+		for (OpportunityTnlRaw opportunityTnlRaw : opportunityTnlRaws) {
+			opportunityTnl = new OpportunityTnl();
+			dataMap = new HashMap<String, Object>();
+			
+			dataMap.put(projectCode, opportunityTnlRaw.getProjectCode());
+			dataMap.put(role, opportunityTnlRaw.getRole());
+			dataMap.put(practice, opportunityTnlRaw.getSkillSet());
+			dataMap.put(payLevel, opportunityTnlRaw.getPayLevel());
+			dataMap.put(location, opportunityTnlRaw.getLocation());
+			dataMap.put(billable, opportunityTnlRaw.getBillable());
+			dataMap.put(estimatedStartDate, opportunityTnlRaw.getEstimatedStartDate());
+			dataMap.put(estimateEndDate, opportunityTnlRaw.getEstimatedEndDate());
+			dataMap.put(balance, opportunityTnlRaw.getBalance());
+			dataMap.put(dateRequested, opportunityTnlRaw.getDateRequested());
+			dataMap.put(agileReq, opportunityTnlRaw.getAgileReq());
+			dataMap.put(account, opportunityTnlRaw.getAccount());
+			dataMap.put(groupProject, opportunityTnlRaw.getGroupProject());
+			dataMap.put(backfillSupernum, opportunityTnlRaw.getBackfillSupernum());
+			dataMap.put(qty, opportunityTnlRaw.getQty());
+			dataMap.put(filled, opportunityTnlRaw.getFilled());
+			dataMap.put(dateFilled, opportunityTnlRaw.getDateFilled());
+			dataMap.put(newHire, opportunityTnlRaw.getNewHire());
+			dataMap.put(candidate, opportunityTnlRaw.getCandidate());
+			dataMap.put(candidateStatus, opportunityTnlRaw.getCandidateStatus());
+			dataMap.put(status, opportunityTnlRaw.getCandidateStatus());
+			dataMap.put(background, opportunityTnlRaw.getBackground());
+			dataMap.put(comments, opportunityTnlRaw.getComments());
+			dataMap.put(resume, opportunityTnlRaw.getResume());
+			dataMap.put(coc, opportunityTnlRaw.getContingentWorkerCodeOfConduct());
+			dataMap.put(nda, opportunityTnlRaw.getNonDisclosureAgreement());
+			dataMap.put(dateOfBirth, opportunityTnlRaw.getDateOfBirth());
+			dataMap.put(sss, opportunityTnlRaw.getLast5DigitsOfSSS());
+			dataMap.put(docs, opportunityTnlRaw.getOnsiteOnboardingDocuments());
+			dataMap.put(workbookDataSourceId, opportunityTnlRaw.getWorkbookDatasourceId());
+			
+			opportunityTnl.setDataMap(dataMap);
+			opportunityTnlList.add(opportunityTnl);
+		}
+		
+		workbook.setOpportunityTnl(opportunityTnlList);
+		return workbook;
+	}
+}

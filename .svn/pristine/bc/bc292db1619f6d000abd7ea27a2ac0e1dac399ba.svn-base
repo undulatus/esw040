@@ -25,7 +25,6 @@ import com.pointwest.workforce.planner.domain.PayLevel;
 import com.pointwest.workforce.planner.domain.Practice;
 import com.pointwest.workforce.planner.domain.ResourceSpecification;
 import com.pointwest.workforce.planner.domain.Role;
-import com.pointwest.workforce.planner.domain.ServiceType;
 import com.pointwest.workforce.planner.domain.WeeklyFTE;
 import com.pointwest.workforce.planner.domain.WeeklyFTEKey;
 import com.pointwest.workforce.planner.nonentity.domain.OpportunityTnl;
@@ -108,8 +107,6 @@ public class MigrationServiceImpl implements MigrationService {
 	
 	private Map<String, BusinessUnit> businessUnitMap = null;
 	
-	private Map<Integer, BusinessUnit> businessUnitIdMap = null;
-	
 	private Map<String, Role> roleMap = null;
 	
 	private Map<String, Practice> practiceMap = null;
@@ -123,15 +120,6 @@ public class MigrationServiceImpl implements MigrationService {
 		List<BusinessUnit> buList = referenceDataService.fetchAllBusinessUnit();
 		for(BusinessUnit bu : buList) {
 			buMap.put(bu.getBusinessUnitName(), bu);
-		}
-		return buMap;		
-	}
-	
-	private Map<Integer, BusinessUnit> mapBusinessUnitId() {
-		Map<Integer, BusinessUnit> buMap = new HashMap<Integer, BusinessUnit>();
-		List<BusinessUnit> buList = referenceDataService.fetchAllBusinessUnit();
-		for(BusinessUnit bu : buList) {
-			buMap.put(bu.getBusinessUnitId(), bu);
 		}
 		return buMap;		
 	}
@@ -184,7 +172,7 @@ public class MigrationServiceImpl implements MigrationService {
 		return opportunityCollection;
 	}
 	
-	private List<Opportunity> transformToOpportunityList(Map<String, List<Map<String, Object>>> opportunityCollection, String owner, Integer businessUnitId) {
+	private List<Opportunity> transformToOpportunityList(Map<String, List<Map<String, Object>>> opportunityCollection) {
 		Opportunity opportunity = null;
 		
 		//BMAB set default attribute objects
@@ -205,12 +193,6 @@ public class MigrationServiceImpl implements MigrationService {
 			//BMAB REMOVE THIS IF ASKED BY BA opp name
 			//opportunity.setOpportunityName(entry.getKey());
 			opportunity.setProjectCode(entry.getKey());
-			opportunity.setUsername(owner);
-			
-			opportunity.setBusinessUnit(businessUnitIdMap.get(businessUnitId));
-			ServiceType serviceType = new ServiceType();
-			serviceType.setServiceTypeId(defaultServiceLineId);
-			opportunity.setServiceType(serviceType);
 			
 			opportunityActivities = new ArrayList<OpportunityActivity>();
 			resourceSpecifications = new ArrayList<ResourceSpecification>();
@@ -223,26 +205,14 @@ public class MigrationServiceImpl implements MigrationService {
 			opportunity.setDurationGranularity(this.defaultDurationGranularity);
 			opportunity.setDocumentStatus(this.defaultDocumentStatus);
 			
-			LocalDate minDate = null;
-			LocalDate maxDate = null;
-			
 			for(Map<String, Object> data : entry.getValue()) {
 				if(isEntryForSaving(data)) {
 					resourceSpecification = this.processResourceSpecificationData(data);
 					resourceSpecification.setResourceSchedule(this.processFTESchedule(data));
 					resourceSpecifications.add(resourceSpecification);
 					//BMAB check for refactoring, oppname and sourceid will be set to the last entry values
-					//opportunity.setOpportunityName( (String) data.get(this.opportunityNameCol));
-					//opportunity.setWorkbookDataSourceId( (Long) data.get(this.workbookDataSourceIdCol) );
-					
-					if(data.get(this.resourceStartDateCol) != null) {
-						minDate = this.getEarlierDate(minDate, DateUtil.stringToDate((String) data.get(this.resourceStartDateCol)));
-					}	
-					if(data.get(this.resourceEndDateCol) != null) {
-						maxDate = this.getLaterDate(minDate, DateUtil.stringToDate((String) data.get(this.resourceEndDateCol)));
-					}
-					opportunity = this.processOpportunityData(opportunity, data, minDate, maxDate);
-					opportunityActivity = this.proccessOpportunityActivityData(opportunityActivity, data, minDate, maxDate);
+					opportunity.setOpportunityName( (String) data.get(this.opportunityNameCol));
+					opportunity.setWorkbookDataSourceId( (Long) data.get(this.workbookDataSourceIdCol) );
 				} else {
 					//next iteration
 				}
@@ -256,70 +226,6 @@ public class MigrationServiceImpl implements MigrationService {
 		log.debug("##### NUMBER OF OPPS from upload" + listOfOpportunitiesToSave.size());
 		return listOfOpportunitiesToSave;
 		
-	}
-	
-	private LocalDate getEarlierDate(LocalDate date1, LocalDate date2) {
-		if(date1 != null) {
-			if(date1.isBefore(date2)) { 
-				return date1;
-			} else {
-				return date2;
-			}
-		} else {
-			return date2;
-		}
-	}
-	
-	private LocalDate getLaterDate(LocalDate date1, LocalDate date2) {
-		if(date1 != null) {
-			if(date1.isAfter(date2)) { 
-				return date1;
-			} else {
-				return date2;
-			}
-		} else {
-			return date2;
-		}
-	}
-	
-	private Opportunity processOpportunityData(Opportunity opportunity, Map<String, Object> data, LocalDate startDate, LocalDate endDate) {
-		opportunity.setOpportunityName( (String) data.get(this.opportunityNameCol));
-		opportunity.setWorkbookDataSourceId( (Long) data.get(this.workbookDataSourceIdCol) );
-		//date related data block
-		/*String startDateString = (String) data.get(this.resourceStartDateCol);
-		String endDateString = (String) data.get(this.resourceEndDateCol);
-		LocalDate startDate = DateUtil.stringToDate(startDateString);
-		LocalDate endDate = DateUtil.stringToDate(endDateString);*/
-		Date oppStartDate = null;
-		Date oppEndDate = null;
-		if(startDate != null && endDate != null) {
-			oppStartDate = Date.valueOf(startDate);
-			oppEndDate = Date.valueOf(endDate);
-		}
-		Integer durationInWeeks = DateUtil.getWeeks(startDate, endDate, this.WEEKSINMONTH);
-		opportunity.setProjectStartDate(oppStartDate);
-		opportunity.setProjectEndDate(oppEndDate);
-		opportunity.setDurationInWeeks(durationInWeeks.doubleValue());
-		//end date data block
-		
-		return opportunity;
-	}
-	
-	private OpportunityActivity proccessOpportunityActivityData(OpportunityActivity opportunityActivity, Map<String, Object> data, LocalDate startDate, LocalDate endDate) {
-		//date related data block
-		/*String startDateString = (String) data.get(this.resourceStartDateCol);
-		String endDateString = (String) data.get(this.resourceEndDateCol);
-		LocalDate startDate = DateUtil.stringToDate(startDateString);
-		LocalDate endDate = DateUtil.stringToDate(endDateString);*/
-		
-		Date oppActStartDate = null;
-		if(startDate != null && endDate != null) {
-			oppActStartDate = Date.valueOf(startDate);
-		}
-		Integer durationInWeeks = DateUtil.getWeeks(startDate, endDate, this.WEEKSINMONTH);
-		opportunityActivity.setActivityStartDate(oppActStartDate);
-		opportunityActivity.setDurationInWeeks(durationInWeeks.doubleValue());
-		return opportunityActivity;
 	}
 	
 	private boolean isEntryForSaving(Map<String, Object> data) {
@@ -364,11 +270,7 @@ public class MigrationServiceImpl implements MigrationService {
 		String endDateString = (String) data.get(this.resourceEndDateCol);
 		LocalDate startDate = DateUtil.stringToDate(startDateString);
 		LocalDate endDate = DateUtil.stringToDate(endDateString);
-		Date roleStartDate = null;
-		if(startDate != null && endDate != null) {
-			roleStartDate = Date.valueOf(startDate);
-		}
-		
+		Date roleStartDate = Date.valueOf(startDate);
 		Integer durationInWeeks = DateUtil.getWeeks(startDate, endDate, this.WEEKSINMONTH);
 		Double balance = Double.valueOf( (String) data.get(this.resourceFteBalanceCol) );
 		Double totalFte = durationInWeeks * balance;
@@ -404,7 +306,6 @@ public class MigrationServiceImpl implements MigrationService {
 			
 		} catch(Exception e) {
 			log.debug(" no entries for fte, dates invalid ");
-			e.printStackTrace();
 			weeklyFTE = null;
 		}
 		log.debug("upload fte size " + weeklyFTEs.size());
@@ -413,10 +314,9 @@ public class MigrationServiceImpl implements MigrationService {
 	
 	
 	@Override
-	public List<Opportunity> saveTnlOpportunities(Workbook tnlWorkbook, String owner, Integer businessUnitId) {
+	public List<Opportunity> saveTnlOpportunities(Workbook tnlWorkbook) {
 		//init references
 		this.businessUnitMap = this.mapBusinessUnit();
-		this.businessUnitIdMap = this.mapBusinessUnitId();
 		this.roleMap = this.mapRole();
 		this.practiceMap = this.mapPractice();
 		this.payLevelMap = this.mapPayLevel();
@@ -427,12 +327,11 @@ public class MigrationServiceImpl implements MigrationService {
 				listOfEntries.add(entry.getDataMap());
 			}
 			Map<String, List<Map<String, Object>>> opportunityCollection = this.segregateOpportunities(listOfEntries);
-			List<Opportunity> opportunitiesToSave = this.transformToOpportunityList(opportunityCollection, owner, businessUnitId);
+			List<Opportunity> opportunitiesToSave = this.transformToOpportunityList(opportunityCollection);
 			savedOpportunities = this.saveData(opportunitiesToSave);
 		} catch(Exception e) {
 			log.error("error in migration of uploaded data" );
 			log.error(e.getMessage());
-			e.printStackTrace();
 			savedOpportunities = null;
 		}
 		return savedOpportunities;
@@ -485,10 +384,15 @@ public class MigrationServiceImpl implements MigrationService {
 			}
 		} catch(Exception e) {
 			log.error("Error in migration " + e.getMessage());
-			e.printStackTrace();
 			savedOpportunities = null;
 		}
 		return savedOpportunities;
+	}
+
+	@Override
+	public List<Opportunity> deleteTnlOpportunities(Workbook tnlWorkbook) {
+		
+		return null;
 	}
 	
 }
