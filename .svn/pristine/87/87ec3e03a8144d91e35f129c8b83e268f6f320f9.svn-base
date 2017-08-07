@@ -101,12 +101,9 @@ public class UploadDataServiceImpl implements UploadDataService {
 	@Override
 	public List<OpportunityTnlRaw> saveOpportunityTnlRaw(List<OpportunityTnlRaw> opportunityTnlRaws, Long workbookDataSourceId) {
 		List<OpportunityTnlRaw> saved = null;
-		log.debug("starting to save to flat table source id = " + workbookDataSourceId);
 		try {
-			List<OpportunityTnlRaw> deletedList = opportunityTnlRawRepository.deleteByWorkbookDatasourceId(workbookDataSourceId);
-			log.debug("purged flat table row size " + deletedList.size());
+			opportunityTnlRawRepository.removeByWorkbookDatasourceId(workbookDataSourceId);
 			saved = (List<OpportunityTnlRaw>) opportunityTnlRawRepository.save(opportunityTnlRaws);
-			log.debug("flat table size of saved rows " + saved.size());
 		} catch(Exception e) {
 			log.error("Exception in saving opp tnl " + e.getMessage());
 			saved = null;

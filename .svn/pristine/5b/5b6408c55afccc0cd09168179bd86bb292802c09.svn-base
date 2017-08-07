@@ -108,10 +108,10 @@ public class WorkbookController {
 			
 			return new ResponseEntity<>(new CustomError("Not saved"), HttpStatus.FAILED_DEPENDENCY);
 		}else {
-
+			List<OpportunityTnlRaw> savedOpportunityTnlRaws = null;
+			
 			Workbook workbook;
 			try {
-				log.debug("### Starting to read excel ");
 				workbook = uploadDataService.extractGoogleWorkbook(workbookDataSource, workbookDataSource.getWorkbookDataSourceId());
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -121,12 +121,13 @@ public class WorkbookController {
 			
 			List<OpportunityTnlRaw> opportunityTnlRawsList =  opportunityTnlRawAdapter.opportunityTnlRawAdapter(opportunityTnls);
 					
+			savedOpportunityTnlRaws = uploadDataService.saveOpportunityTnlRaw(opportunityTnlRawsList, workbookDataSource.getWorkbookDataSourceId());
+			
 			workbookValidationResult = workbookValidationService.checkWorkbookForExceptions(workbook);
 			
 			log.info("Workbook without exceptions?" + workbookValidationResult);
 			if(workbookValidationResult){
 				log.info("Workbook passed");
-				uploadDataService.saveOpportunityTnlRaw(opportunityTnlRawsList, workbookDataSource.getWorkbookDataSourceId());
 				uploadDataService.updateValidationStatus(workbookDataSource, validationStatusPassed);
 				uploadDataService.updateMigrationStatus(workbookDataSource, "Not Started");
 			}else{
