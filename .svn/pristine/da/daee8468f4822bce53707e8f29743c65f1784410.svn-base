@@ -1,0 +1,13 @@
+package com.pointwest.workforce.planner.service;
+
+import com.pointwest.workforce.planner.domain.WorkbookErrorRecord;
+
+public interface WorkbookValidationErrorDataService {
+
+	public WorkbookErrorRecord saveWorkbookErrorRecord(WorkbookErrorRecord workbookErrorRecord);
+	
+	public WorkbookErrorRecord fetchWorkbookErrorRecord(Long workbookErrorRecordId);
+
+	public WorkbookErrorRecord fetchWorkbookErrorRecordByWorkbookDataSourceId(Long workbookDataSourceId);
+	
+}

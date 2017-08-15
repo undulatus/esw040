@@ -1,0 +1,85 @@
+package com.pointwest.workforce.planner.constants;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
+public class WorkbookExceptionConstants {
+
+	public static final String COLUMN_1 = "projectcoderequiredsingle";// Project
+
+	public static final String COLUMN_1_2 = "projectnamerequiredsingle";// Project
+	// Code
+	public static final String COLUMN_2 = "businessunit";// Business Unit
+	public static final String COLUMN_3 = "billableynoptionalsingle";// Billable?
+	public static final String COLUMN_4 = "projectrolerequiredsingle";// Project
+																		// Role
+	public static final String COLUMN_5 = "balancerequired";// Balance
+	public static final String COLUMN_6 = "backfillsupernumoptionalmultiple";// Backfill
+																				// /
+																				// Supernum
+	public static final String COLUMN_7 = "estimatedstartdateoptionalsingle";// Estimated
+																				// Start
+																				// Date
+	public static final String COLUMN_8 = "primaryskillsettechnologypracticeoptionalmultiple";// Primary
+																								// Skillset
+	public static final String COLUMN_9 = "estimatedenddateoptionalsingle";// Estimated
+																			// End
+																			// Date
+	public static final String COLUMN_10 = "payleveloptionalsingle";// Pay Level
+	
+	public static final String COLUMN_11 = "candidate";
+
+	public static final String VALID_NUMBER_CHARACTER_CONSTRAINT_1 = "d";
+	public static final String VALID_NUMBER_CHARACTER_CONSTRAINT_2 = "f";
+
+	public static final String ERROR_MESSAGE_REQUIRED_COLUMN_MISSING = "Required Column Missing";
+	public static final String ERROR_MESSAGE_Y_OR_N_ONLY = "Y or N only";
+	public static final String ERROR_MESSAGE_REQUIRED_FIELD_EMPTY = "Required Field Empty";
+	public static final String ERROR_MESSAGE_CHARACTER_LIMIT_EXCEEDED = "Character Limit Exceeded";
+	public static final String ERROR_MESSAGE_INVALID_DATA_TYPE = "Incorrect Data Type";
+	public static final String ERROR_MESSAGE_INVALID_NUMERIC_PRECISION = "Invalid Numeric Precision";
+	public static final String ERROR_MESSAGE_VALUE_NOT_IN_PREDEFINED_LIST = "Invalid Entry (Value must come from a pre-defined list)";
+	public static final String ERROR_MESSAGE_SINGLE_ENTRY_FIELD_ONLY = "Single Entry Field Only";
+	
+	public static final String ERROR_MESSAGE_INVALID_DATA_DATE_EXPECTED = "Date format (mm-d-YYYY) expected or Invalid Date was entered";
+	public static final String ERROR_MESSAGE_INVALID_DATA_DOUBLE_EXPECTED = "Double expected";
+
+	public static final ArrayList<String> REQUIRED_COLUMN_LIST = new ArrayList<String>(
+			Arrays.asList(COLUMN_1, COLUMN_1_2, COLUMN_4, COLUMN_5));
+
+	public static final ArrayList<String> PREDEFINED_COLUMN_LIST = new ArrayList<String>(
+			Arrays.asList(COLUMN_4, COLUMN_10, COLUMN_3));
+
+	public static final ArrayList<String> MULTIPLE_ENTRY_COLUMN_LIST = new ArrayList<String>(
+			Arrays.asList(COLUMN_6, COLUMN_8));
+
+	public static final ArrayList<String> DOUBLE_DATA_TYPE_COLUMN_LIST = new ArrayList<String>(Arrays.asList(COLUMN_5));
+
+	public static final ArrayList<String> DATE_DATA_TYPE_COLUMN_LIST = new ArrayList<String>(
+			Arrays.asList(COLUMN_7, COLUMN_9));
+	
+	public static final ArrayList<String> DISABLE_CHARACTER_COUNT = new ArrayList<String>(
+			Arrays.asList(COLUMN_7, COLUMN_9));
+
+	public static final int CHARACTER_LIMIT = 45;
+	
+	public static final ArrayList<String> Y_OR_N_ONLY = new ArrayList<String>(
+			Arrays.asList("Y","N"));
+
+	public static final ArrayList<String> BUSINESS_UNIT_PREDEFINED_LIST = new ArrayList<String>(
+			Arrays.asList("BR", "HC", "SMG", "T&L", "UMP"));
+
+	public static final ArrayList<String> PROJECT_ROLE_PREDEFINED_LIST = new ArrayList<String>(Arrays.asList(
+			"Application Management Engineer", "BPO Data Analyst", "BPO Pharmacist", "BPO Processor",
+			"BPO Processor Lead", "BPS - Non-Clinical", "Business Analyst", "Business Analyst Lead", "Data Engineer",
+			"Designer", "Developer", "Developer Lead", "Infrastructure Engineer", "Infrastructure Lead",
+			"Onsite Coordinator", "Process Auditor", "Project Coordinator", "Project Lead", "Project Manager",
+			"Reviewer", "System Analyst / Designer", "SEPG Member", "Team Lead", "Test Analyst", "Test Analyst Lead",
+			"Test Automation Engineer", "Test Automation Engineer Lead", "Test Engineer", "Test Manager",
+			"Quality Engineer", "Trainee", "Trainer", "Transport Specialist"));
+	public static final ArrayList<String> PAY_LEVEL_PREDEFINED_LIST = new ArrayList<String>(
+			Arrays.asList("SE1", "SE2", "SE3", "SE4", "SE5", "PM", "BPS-C1", "BPS-C2", "BPS-C3", "BPS-C4", "BPS-C5",
+					"BPS-NC1", "BPS-NC2", "BPS-NC3", "BPS-NC4", "BPS-NC5"));
+	public static final int MINIMUM_ACCEPTABLE_DECIMAL_PLACES = 5;
+
+}

@@ -1,0 +1,153 @@
+package com.pointwest.workforce.planner.controller;
+
+
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.pointwest.workforce.planner.domain.CustomError;
+import com.pointwest.workforce.planner.domain.OpportunityTnlRaw;
+import com.pointwest.workforce.planner.domain.WorkbookDataSource;
+import com.pointwest.workforce.planner.nonentity.domain.OpportunityTnl;
+import com.pointwest.workforce.planner.nonentity.domain.Workbook;
+import com.pointwest.workforce.planner.service.UploadDataService;
+import com.pointwest.workforce.planner.service.WorkbookValidationService;
+import com.pointwest.workforce.planner.ui.adapter.OpportunityTnlRawAdapter;
+import com.pointwest.workforce.planner.util.KeyUtil;
+
+
+@RestController
+public class WorkbookController {
+	
+	@Autowired
+	UploadDataService uploadDataService;
+	
+	@Autowired
+	WorkbookValidationService workbookValidationService;
+	
+	@Autowired
+	OpportunityTnlRawAdapter opportunityTnlRawAdapter;
+	
+	@Value("${workbook.validation.status.ongoing}")
+	private String validationStatusOngoing;
+	
+	@Value("${workbook.validation.status.passed}")
+	private String validationStatusPassed;
+	
+	@Value("${workbook.validation.status.failed}")
+	private String validationStatusFailed;
+	
+	@Value("${workbook.migration.status.not-migrated}")
+	private String migrationStatusNonMigrated;
+	
+	@Value("${workbook.migration.status.migrated}")
+	private String migrationStatusMigrated;
+	
+	@Value("${workbook.migration.status.cancelled}")
+	private String migrationStatusCancelled;
+	
+	@Value("${workbook.migration.status.ongoing}")
+	private String migrationStatusOngoing;
+	
+	@Value("${workbook.migration.status.failed}")
+	private String migrationStatusFailed;
+	
+	
+	
+	
+	private static final Logger log = LoggerFactory.getLogger(WorkbookController.class);
+	
+	@RequestMapping(method=RequestMethod.GET, value="/workbook")
+    public ResponseEntity<Object> fetchAllWorkbook() {
+		List<WorkbookDataSource> workbookDataSources = uploadDataService.fetchAllWorkbookDataSources();
+		if(workbookDataSources == null) {
+    	   return new ResponseEntity<>(new CustomError("No list retrieved"), HttpStatus.NOT_FOUND);
+		} else {
+    	   return new ResponseEntity<>(workbookDataSources, HttpStatus.OK);
+		}
+    }
+	
+	@RequestMapping(method=RequestMethod.GET, value="/workbook/{workbookId}")
+    public ResponseEntity<Object> fetchWorkbook() {
+       return null;
+    }
+	
+	@RequestMapping(method = RequestMethod.POST, value = "/gbook")
+	public ResponseEntity<Object> saveGoogleWorkbook(@RequestBody(required = false) String url) {
+
+		WorkbookDataSource workbookDataSource = null;
+		boolean workbookValidationResult = false;
+		boolean isSaved = false;
+		
+		String contextPath = KeyUtil.getContextPath(url);
+		
+		workbookDataSource = uploadDataService.fetchGBookByUrl(contextPath);
+		
+		if(workbookDataSource != null){
+			workbookDataSource.setValidationStatus(validationStatusOngoing);
+			uploadDataService.updateStartUploadValidationStatusUploader(workbookDataSource);
+			isSaved = true;
+		}else{
+			workbookDataSource = uploadDataService.saveGoogleWorkbook(contextPath, validationStatusOngoing);
+			isSaved = true;
+		}
+		
+		if (isSaved == false) {
+//			TODO (1) Error Message, (2) Number of Successfully Validated Line Entries, 
+//			(3) Number of Line Entries with Validation Errors, (4) Number of Validation Errors Encountered, 
+//			(5) Link to view upload error report.
+			
+			return new ResponseEntity<>(new CustomError("Not saved"), HttpStatus.FAILED_DEPENDENCY);
+		}else {
+
+			Workbook workbook;
+			try {
+				log.debug("### Starting to read excel ");
+				workbook = uploadDataService.extractGoogleWorkbook(workbookDataSource, workbookDataSource.getWorkbookDataSourceId());
+			} catch (Exception e) {
+				e.printStackTrace();
+				return new ResponseEntity<>(new CustomError("Failed on extracting"), HttpStatus.FAILED_DEPENDENCY);
+			}
+			List<OpportunityTnl> opportunityTnls = workbook.getOpportunityTnl();
+			
+			List<OpportunityTnlRaw> opportunityTnlRawsList =  opportunityTnlRawAdapter.opportunityTnlRawAdapter(opportunityTnls);
+					
+			workbookValidationResult = workbookValidationService.checkWorkbookForExceptions(workbook).isWorkbookPassed();
+			
+			log.info("Workbook without exceptions?" + workbookValidationResult);
+			if(workbookValidationResult){
+				uploadDataService.saveOpportunityTnlRaw(opportunityTnlRawsList, workbookDataSource.getWorkbookDataSourceId());
+				uploadDataService.updateValidationStatus(workbookDataSource, validationStatusPassed);
+				uploadDataService.updateMigrationStatus(workbookDataSource, "Not Started");
+				workbookValidationResult = true;
+			}else{
+				uploadDataService.updateValidationStatus(workbookDataSource, validationStatusFailed);
+				uploadDataService.updateMigrationStatus(workbookDataSource, migrationStatusNonMigrated);
+				workbookValidationResult = false;
+			}
+			
+		}
+
+		return new ResponseEntity<>(workbookValidationResult, HttpStatus.OK);
+	}
+	
+	@RequestMapping(method=RequestMethod.GET, value="/workbook/raw/tnl")
+    public ResponseEntity<Object> fetchAllOpportunityTnlRaw() {
+       List<OpportunityTnlRaw> opportunityTnlRaws = uploadDataService.fetchAllOpportunityTnlRaw();
+       if(opportunityTnlRaws == null) {
+    	   return new ResponseEntity<>(new CustomError("No list retrieved"), HttpStatus.NOT_FOUND);
+       } else {
+    	   return new ResponseEntity<>(opportunityTnlRaws, HttpStatus.OK);
+       }
+    }
+	
+}

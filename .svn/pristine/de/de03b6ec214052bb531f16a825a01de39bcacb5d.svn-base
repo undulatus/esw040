@@ -1,0 +1,55 @@
+package com.pointwest.workforce.planner.domain;
+
+public class WorkbookErrorLog {
+
+	public WorkbookErrorLog() {
+		super();
+	}
+
+	private Long workbookErrorLogId;
+	private String errorIdentifier;
+	private String errorMessage;
+	private int rowNumber;
+	private String columnHeader;
+
+	public Long getWorkbookErrorLogId() {
+		return workbookErrorLogId;
+	}
+
+	public void setWorkbookErrorLogId(Long workbookErrorLogId) {
+		this.workbookErrorLogId = workbookErrorLogId;
+	}
+
+	public String getErrorIdentifier() {
+		return errorIdentifier;
+	}
+
+	public void setErrorIdentifier(String errorIdentifier) {
+		this.errorIdentifier = errorIdentifier;
+	}
+
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
+	public void setErrorMessage(String errorMessage) {
+		this.errorMessage = errorMessage;
+	}
+
+	public int getRowNumber() {
+		return rowNumber;
+	}
+
+	public void setRowNumber(int rowNumber) {
+		this.rowNumber = rowNumber;
+	}
+
+	public String getColumnHeader() {
+		return columnHeader;
+	}
+
+	public void setColumnHeader(String columnHeader) {
+		this.columnHeader = columnHeader;
+	}
+
+}

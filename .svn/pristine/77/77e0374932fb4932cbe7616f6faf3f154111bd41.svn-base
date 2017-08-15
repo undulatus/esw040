@@ -1,0 +1,88 @@
+package com.pointwest.workforce.planner.domain;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="workbook_error_summary")
+public class WorkbookErrorSummary implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	@Column(name="workbook_error_summary_id")
+	private Long workbookErrorSummaryId;
+	
+	@Column(name="workbook_error_summary_rows_validated")
+	private int rowsValidated;
+	
+	@Column(name="workbook_error_summary_rows_passed")
+	private int rowsPassed;
+	
+	@Column(name="workbook_error_summary_rows_failed")
+	private int rowsFailed;
+	
+	@Column(name="workbook_error_summary_errors_logged")
+	private int errorsLogged;
+	
+	private Long workbookErrorRecordId;
+
+	public Long getWorkbookErrorSummaryId() {
+		return workbookErrorSummaryId;
+	}
+
+	public void setWorkbookErrorSummaryId(Long workbookErrorSummaryId) {
+		this.workbookErrorSummaryId = workbookErrorSummaryId;
+	}
+
+	public int getRowsValidated() {
+		return rowsValidated;
+	}
+
+	public void setRowsValidated(int rowsValidated) {
+		this.rowsValidated = rowsValidated;
+	}
+
+	public int getRowsPassed() {
+		return rowsPassed;
+	}
+
+	public void setRowsPassed(int rowsPassed) {
+		this.rowsPassed = rowsPassed;
+	}
+
+	public int getRowsFailed() {
+		return rowsFailed;
+	}
+
+	public void setRowsFailed(int rowsFailed) {
+		this.rowsFailed = rowsFailed;
+	}
+
+	public int getErrorsLogged() {
+		return errorsLogged;
+	}
+
+	public void setErrorsLogged(int errorsLogged) {
+		this.errorsLogged = errorsLogged;
+	}
+
+	public Long getWorkbookErrorRecordId() {
+		return workbookErrorRecordId;
+	}
+
+	public void setWorkbookErrorRecordId(Long workbookErrorRecordId) {
+		this.workbookErrorRecordId = workbookErrorRecordId;
+	}
+
+}

@@ -1,5 +1,6 @@
 package com.pointwest.workforce.planner.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -17,10 +18,14 @@ import com.pointwest.workforce.planner.domain.CustomError;
 import com.pointwest.workforce.planner.domain.Opportunity;
 import com.pointwest.workforce.planner.domain.OpportunityTnlRaw;
 import com.pointwest.workforce.planner.domain.WorkbookDataSource;
+import com.pointwest.workforce.planner.domain.WorkbookErrorLog;
+import com.pointwest.workforce.planner.domain.WorkbookErrorRecord;
+import com.pointwest.workforce.planner.domain.WorkbookErrorSummary;
 import com.pointwest.workforce.planner.nonentity.domain.Workbook;
 import com.pointwest.workforce.planner.service.MigrationService;
 import com.pointwest.workforce.planner.service.OpportunityService;
 import com.pointwest.workforce.planner.service.UploadDataService;
+import com.pointwest.workforce.planner.service.WorkbookValidationErrorDataService;
 import com.pointwest.workforce.planner.ui.adapter.WorkbookAdapter;
 
 @RestController
@@ -77,7 +82,11 @@ public class MigrationController {
 				log.debug("migration.. purging opportunity with id " + opportunity.getOpportunityId());
 			}
 			//insert opportunity entries
-			opportunities = migrationService.saveTnlOpportunities(workbook, owner, businessUnitId);
+			if(workbook.getOpportunityTnl().size() < 1) {
+				uploadDataService.updateMigrationStatus(workbookDataSource, migrationStatusFailed);
+			} else {				
+				opportunities = migrationService.saveTnlOpportunities(workbook, owner, businessUnitId);
+			}
 		} catch(Exception e) {
 			log.error("migration failed");
 			log.error(e.getMessage());
@@ -91,6 +100,46 @@ public class MigrationController {
 		} else {
 			uploadDataService.updateMigrationStatus(workbookDataSource, migrationStatusMigrated);
 			return new ResponseEntity<>(opportunities, HttpStatus.OK);
+		}
+	}
+	
+	@Autowired
+	public WorkbookValidationErrorDataService workbookValidationErrorDataService; 
+	
+	@RequestMapping(method = RequestMethod.POST, value = "/logerror")
+	public ResponseEntity<Object> testErrorLog(@RequestBody(required = false) WorkbookErrorRecord workbookErrorR) {
+		WorkbookErrorRecord workbookErrorRecord = new WorkbookErrorRecord();
+		workbookErrorRecord.setMissingColumns("miss,one");
+		
+		WorkbookErrorLog elog = new WorkbookErrorLog("er1", "miss col 1", 3);
+		WorkbookErrorSummary esum = new WorkbookErrorSummary(4, 3, 1);
+		List<WorkbookErrorLog> elogList = new ArrayList<WorkbookErrorLog>();
+		elogList.add(elog);
+		elog = new WorkbookErrorLog("er2", "miss col 2", 4);
+		elogList.add(elog);
+		
+		workbookErrorRecord.setWorkbookErrorLogList(elogList);
+		workbookErrorRecord.setWorkbookErrorSummary(esum);
+		try {
+			log.debug("start saving error log");
+			WorkbookErrorRecord wer = workbookValidationErrorDataService.saveWorkbookErrorRecord(workbookErrorRecord);
+			return new ResponseEntity<Object>(wer, HttpStatus.OK);
+		} catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	@RequestMapping(method = RequestMethod.POST, value = "/viewerror")
+	public ResponseEntity<Object> testErrorLogView() {
+		
+		try {
+			log.debug("start viewing error log");
+			WorkbookErrorRecord wer = workbookValidationErrorDataService.fetchWorkbookErrorRecordByWorkbookDataSourceId(new Long(129));
+			return new ResponseEntity<Object>(wer, HttpStatus.OK);
+		} catch(Exception e) {
+			e.printStackTrace();
+			return null;
 		}
 	}
 	

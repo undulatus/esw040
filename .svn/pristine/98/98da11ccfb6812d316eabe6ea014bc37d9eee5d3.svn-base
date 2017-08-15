@@ -1,0 +1,505 @@
+package com.pointwest.workforce.planner.service.impl;
+
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.pointwest.workforce.planner.domain.Activity;
+import com.pointwest.workforce.planner.domain.BusinessUnit;
+import com.pointwest.workforce.planner.domain.Opportunity;
+import com.pointwest.workforce.planner.domain.OpportunityActivity;
+import com.pointwest.workforce.planner.domain.OpportunityStatus;
+import com.pointwest.workforce.planner.domain.PayLevel;
+import com.pointwest.workforce.planner.domain.Practice;
+import com.pointwest.workforce.planner.domain.ResourceSpecification;
+import com.pointwest.workforce.planner.domain.Role;
+import com.pointwest.workforce.planner.domain.ServiceType;
+import com.pointwest.workforce.planner.domain.WeeklyFTE;
+import com.pointwest.workforce.planner.domain.WeeklyFTEKey;
+import com.pointwest.workforce.planner.nonentity.domain.OpportunityTnl;
+import com.pointwest.workforce.planner.nonentity.domain.Workbook;
+import com.pointwest.workforce.planner.service.MigrationService;
+import com.pointwest.workforce.planner.service.OpportunityActivityService;
+import com.pointwest.workforce.planner.service.OpportunityService;
+import com.pointwest.workforce.planner.service.ReferenceDataService;
+import com.pointwest.workforce.planner.service.ResourceSpecificationService;
+import com.pointwest.workforce.planner.service.WeeklyFTEService;
+import com.pointwest.workforce.planner.util.DateUtil;
+
+
+@Service
+public class MigrationServiceImpl implements MigrationService {
+	
+	@Autowired
+	OpportunityService opportunityService;	
+	
+	@Autowired
+	ReferenceDataService referenceDataService;
+	
+	@Autowired
+	OpportunityActivityService opportunityActivityService;
+	
+	@Autowired
+	ResourceSpecificationService resourceSpecificationService;
+	
+	@Autowired
+	WeeklyFTEService weeklyFTEService;
+	
+	@Value("${tnl.col.projectcode}")
+	private String projectCodeCol;
+	
+	@Value("${tnl.col.resource.role}")
+	private String resourceRoleCol;
+	
+	@Value("${tnl.col.resource.practice}")
+	private String resourcePracticeCol;
+	
+	@Value("${tnl.col.resource.paylevel}")
+	private String resourcePayLevelCol;
+
+	@Value("${tnl.col.resource.billable}")
+	private String resourceIsBillableCol;
+
+	@Value("${tnl.col.resource.startdate}")
+	private String resourceStartDateCol;
+
+	@Value("${tnl.col.resource.enddate}")
+	private String resourceEndDateCol;
+	
+	@Value("${tnl.col.resource.fte.balance}")
+	private String resourceFteBalanceCol;
+	
+	@Value("${tnl.col.workbookdatasource.id}")
+	private String workbookDataSourceIdCol;	
+
+	@Value("${tnl.col.groupproject}")
+	private String opportunityNameCol;
+	
+//end cols
+	@Value("${tnl.def.activity.id}")
+	private Integer defaultActivityId;
+	
+	@Value("${tnl.def.serviceline.id}")
+	private Integer defaultServiceLineId;
+	
+	@Value("${tnl.def.opportunitystatus.id}")
+	private Integer defaultOpportunityStatusId;
+	
+	@Value("${tnl.def.durationgranularity}")
+	private String defaultDurationGranularity;
+	
+	@Value("${tnl.def.documentstatus}")
+	private String defaultDocumentStatus;
+	
+	@Value("${month.to.week.multiplier}")
+	private Integer WEEKSINMONTH;
+	
+	private Map<String, BusinessUnit> businessUnitMap = null;
+	
+	private Map<Integer, BusinessUnit> businessUnitIdMap = null;
+	
+	private Map<String, Role> roleMap = null;
+	
+	private Map<String, Practice> practiceMap = null;
+	
+	private Map<String, PayLevel> payLevelMap = null;
+	
+	private static final Logger log = LoggerFactory.getLogger(MigrationServiceImpl.class);
+	
+	private Map<String, BusinessUnit> mapBusinessUnit() {
+		Map<String, BusinessUnit> buMap = new HashMap<String, BusinessUnit>();
+		List<BusinessUnit> buList = referenceDataService.fetchAllBusinessUnit();
+		for(BusinessUnit bu : buList) {
+			buMap.put(bu.getBusinessUnitName(), bu);
+		}
+		return buMap;		
+	}
+	
+	private Map<Integer, BusinessUnit> mapBusinessUnitId() {
+		Map<Integer, BusinessUnit> buMap = new HashMap<Integer, BusinessUnit>();
+		List<BusinessUnit> buList = referenceDataService.fetchAllBusinessUnit();
+		for(BusinessUnit bu : buList) {
+			buMap.put(bu.getBusinessUnitId(), bu);
+		}
+		return buMap;		
+	}
+	
+	private Map<String, Role> mapRole() {
+		Map<String, Role> roleMap = new HashMap<String, Role>();
+		List<Role> roleList = referenceDataService.fetchAllRole();
+		for(Role role : roleList) {
+			roleMap.put(role.getRoleName(), role);
+		}
+		return roleMap;		
+	}
+	
+	private Map<String, Practice> mapPractice() {
+		Map<String, Practice> practiceMap = new HashMap<String, Practice>();
+		List<Practice> practiceList = referenceDataService.fetchAllPractice();
+		for(Practice practice : practiceList) {
+			practiceMap.put(practice.getPracticeName(), practice);
+		}
+		return practiceMap;		
+	}
+	
+	private Map<String, PayLevel> mapPayLevel() {
+		Map<String, PayLevel> payLevelMap = new HashMap<String, PayLevel>();
+		List<PayLevel> payLevelList = referenceDataService.fetchAllPayLevel();
+		for(PayLevel payLevel: payLevelList) {
+			payLevelMap.put(payLevel.getPayLevelName(), payLevel);
+		}
+		return payLevelMap;		
+	}
+	
+	private Map<String, List<Map<String, Object>>> segregateOpportunities(List<Map<String, Object>> listOfEntries) {
+		String projCode = null;
+		List<Map<String, Object>> opportunityDataMapsContainer = null;
+		Map<String, List<Map<String, Object>>> opportunityCollection = new HashMap<String, List<Map<String, Object>>>();
+		
+		for(Map<String, Object> rowMap : listOfEntries) {
+			//bmab here
+			projCode = rowMap.get(this.projectCodeCol).toString();
+			log.debug("migrating project code " + projCode);
+			if(opportunityCollection.containsKey(projCode)) {
+				opportunityDataMapsContainer = opportunityCollection.get(projCode);
+				opportunityDataMapsContainer.add(rowMap);
+				opportunityCollection.put(projCode, opportunityDataMapsContainer);
+			} else {
+				opportunityDataMapsContainer = new ArrayList<Map<String, Object>>();
+				opportunityDataMapsContainer.add(rowMap);
+				opportunityCollection.put(projCode, opportunityDataMapsContainer);
+			}
+		}
+		return opportunityCollection;
+	}
+	
+	private List<Opportunity> transformToOpportunityList(Map<String, List<Map<String, Object>>> opportunityCollection, String owner, Integer businessUnitId) {
+		Opportunity opportunity = null;
+		
+		//BMAB set default attribute objects
+		Activity activity = new Activity();
+		activity.setActivityId(this.defaultActivityId);
+		OpportunityStatus opportunityStatus = new OpportunityStatus();
+		opportunityStatus.setOpportunityStatusId(this.defaultOpportunityStatusId);
+		
+		List<OpportunityActivity> opportunityActivities = null;
+		OpportunityActivity opportunityActivity = null;
+		List<ResourceSpecification> resourceSpecifications = null;
+		ResourceSpecification resourceSpecification = null;
+		
+		List<Opportunity> listOfOpportunitiesToSave = new ArrayList<Opportunity>();
+		for (Map.Entry<String ,List<Map<String, Object>>> entry : opportunityCollection.entrySet()) {
+			
+			opportunity = new Opportunity();
+			//BMAB REMOVE THIS IF ASKED BY BA opp name
+			//opportunity.setOpportunityName(entry.getKey());
+			opportunity.setProjectCode(entry.getKey());
+			opportunity.setUsername(owner);
+			
+			opportunity.setBusinessUnit(businessUnitIdMap.get(businessUnitId));
+			ServiceType serviceType = new ServiceType();
+			serviceType.setServiceTypeId(defaultServiceLineId);
+			opportunity.setServiceType(serviceType);
+			
+			opportunityActivities = new ArrayList<OpportunityActivity>();
+			resourceSpecifications = new ArrayList<ResourceSpecification>();
+			
+			opportunityActivity = new OpportunityActivity();
+			//BMAB set defaults
+			opportunityActivity.setActivity(activity);
+			opportunityActivity.setSequenceNo(1);
+			opportunity.setOpportunityStatus(opportunityStatus);
+			opportunity.setDurationGranularity(this.defaultDurationGranularity);
+			opportunity.setDocumentStatus(this.defaultDocumentStatus);
+			
+			LocalDate minDate = null;
+			LocalDate maxDate = null;
+			
+			for(Map<String, Object> data : entry.getValue()) {
+				if(isEntryForSaving(data)) {
+					resourceSpecification = this.processResourceSpecificationData(data);
+					resourceSpecification.setResourceSchedule(this.processFTESchedule(data));
+					resourceSpecifications.add(resourceSpecification);
+					//BMAB check for refactoring, oppname and sourceid will be set to the last entry values
+					//opportunity.setOpportunityName( (String) data.get(this.opportunityNameCol));
+					//opportunity.setWorkbookDataSourceId( (Long) data.get(this.workbookDataSourceIdCol) );
+					
+					if(data.get(this.resourceStartDateCol) != null) {
+						minDate = this.getEarlierDate(minDate, DateUtil.stringToDate((String) data.get(this.resourceStartDateCol)));
+					}	
+					if(data.get(this.resourceEndDateCol) != null) {
+						maxDate = this.getLaterDate(minDate, DateUtil.stringToDate((String) data.get(this.resourceEndDateCol)));
+					}
+					opportunity = this.processOpportunityData(opportunity, data, minDate, maxDate);
+					opportunityActivity = this.proccessOpportunityActivityData(opportunityActivity, data, minDate, maxDate);
+				} else {
+					opportunity = this.processOpportunityData(opportunity, data, minDate, maxDate);
+					//opportunityActivity = this.proccessOpportunityActivityData(opportunityActivity, data, minDate, maxDate);
+				}
+			}
+			
+			opportunityActivity.setResourceSpecificationList(resourceSpecifications);
+			opportunityActivities.add(opportunityActivity);
+			opportunity.setOpportunityActivities(opportunityActivities);
+			listOfOpportunitiesToSave.add(opportunity);
+		}
+		log.debug("##### NUMBER OF OPPS from upload" + listOfOpportunitiesToSave.size());
+		return listOfOpportunitiesToSave;
+		
+	}
+	
+	private LocalDate getEarlierDate(LocalDate date1, LocalDate date2) {
+		if(date1 != null) {
+			if(date1.isBefore(date2)) { 
+				return date1;
+			} else {
+				return date2;
+			}
+		} else {
+			return date2;
+		}
+	}
+	
+	private LocalDate getLaterDate(LocalDate date1, LocalDate date2) {
+		if(date1 != null) {
+			if(date1.isAfter(date2)) { 
+				return date1;
+			} else {
+				return date2;
+			}
+		} else {
+			return date2;
+		}
+	}
+	
+	private Opportunity processOpportunityData(Opportunity opportunity, Map<String, Object> data, LocalDate startDate, LocalDate endDate) {
+		opportunity.setOpportunityName( (String) data.get(this.opportunityNameCol));
+		opportunity.setWorkbookDataSourceId( (Long) data.get(this.workbookDataSourceIdCol) );
+		//date related data block
+		/*String startDateString = (String) data.get(this.resourceStartDateCol);
+		String endDateString = (String) data.get(this.resourceEndDateCol);
+		LocalDate startDate = DateUtil.stringToDate(startDateString);
+		LocalDate endDate = DateUtil.stringToDate(endDateString);*/
+		Date oppStartDate = null;
+		Date oppEndDate = null;
+		Integer durationInWeeks = 0;
+		if(startDate != null && endDate != null) {
+			oppStartDate = Date.valueOf(startDate);
+			oppEndDate = Date.valueOf(endDate);
+			durationInWeeks = DateUtil.getWeeks(startDate, endDate, this.WEEKSINMONTH);
+		}
+		opportunity.setProjectStartDate(oppStartDate);
+		opportunity.setProjectEndDate(oppEndDate);
+		opportunity.setDurationInWeeks(durationInWeeks.doubleValue());
+		//end date data block
+		
+		return opportunity;
+	}
+	
+	private OpportunityActivity proccessOpportunityActivityData(OpportunityActivity opportunityActivity, Map<String, Object> data, LocalDate startDate, LocalDate endDate) {
+		//date related data block
+		/*String startDateString = (String) data.get(this.resourceStartDateCol);
+		String endDateString = (String) data.get(this.resourceEndDateCol);
+		LocalDate startDate = DateUtil.stringToDate(startDateString);
+		LocalDate endDate = DateUtil.stringToDate(endDateString);*/
+		
+		Date oppActStartDate = null;
+		Integer durationInWeeks = 0;
+		if(startDate != null && endDate != null) {
+			oppActStartDate = Date.valueOf(startDate);
+			durationInWeeks = DateUtil.getWeeks(startDate, endDate, this.WEEKSINMONTH);
+		}
+		opportunityActivity.setActivityStartDate(oppActStartDate);
+		opportunityActivity.setDurationInWeeks(durationInWeeks.doubleValue());
+		return opportunityActivity;
+	}
+	
+	private boolean isEntryForSaving(Map<String, Object> data) {
+		//balance > 0 is valid
+		boolean result = false;
+		Double balance = Double.valueOf( (String) data.get(this.resourceFteBalanceCol) );
+		log.debug("balance is " + balance + " of resource " + data.get(resourceRoleCol) + " " + data.get(projectCodeCol));
+		if(balance > 0) {
+			result = true;
+		} else {
+			log.debug("balance is < 0 will not save resource " + data.get(resourceRoleCol));
+		}
+		return result;
+	}
+	
+	private ResourceSpecification processResourceSpecificationData(Map<String, Object> data) {
+		ResourceSpecification resourceSpecification = new ResourceSpecification();
+		
+		String roleName = (String) data.get(this.resourceRoleCol);
+		Role role = roleMap.get(roleName);
+		resourceSpecification.setRole(role);
+		
+		String payLevelName = (String) data.get(this.resourcePayLevelCol);
+		PayLevel payLevel = payLevelMap.get(payLevelName);
+		resourceSpecification.setPayLevel(payLevel);
+		
+		//BMAB update aug 4 removed saved as text in a new col for now
+		/*String practiceName = (String) data.get(this.resourcePracticeCol);
+		Practice practice = practiceMap.get(practiceName);
+		resourceSpecification.setPractice(practice);*/
+		
+		String skillSet = (String) data.get(this.resourcePracticeCol);
+		resourceSpecification.setSkillSet(skillSet);
+		String isBillableString = null;
+		if(data.get(this.resourceIsBillableCol) != null) {
+			isBillableString = (String) data.get(this.resourceIsBillableCol);
+			isBillableString = isBillableString.toLowerCase().trim();
+			if(isBillableString.equals("y") || isBillableString.equals("yes") || isBillableString.equals("1") || isBillableString.equals("true")) { 
+				resourceSpecification.setBillable(true);
+			} else { 
+				resourceSpecification.setBillable(false);
+			}
+		} else {
+			resourceSpecification.setBillable(null);
+		}
+		
+		//date related data block
+		String startDateString = (String) data.get(this.resourceStartDateCol);
+		String endDateString = (String) data.get(this.resourceEndDateCol);
+		LocalDate startDate = DateUtil.stringToDate(startDateString);
+		LocalDate endDate = DateUtil.stringToDate(endDateString);
+		Date roleStartDate = null;
+		if(startDate != null && endDate != null) {
+			roleStartDate = Date.valueOf(startDate);
+		}
+		
+		Integer durationInWeeks = DateUtil.getWeeks(startDate, endDate, this.WEEKSINMONTH);
+		Double balance = Double.valueOf( (String) data.get(this.resourceFteBalanceCol) );
+		Double totalFte = durationInWeeks * balance;
+		//end date data block
+		resourceSpecification.setRoleStartDate(roleStartDate);
+		resourceSpecification.setDurationInWeeks(durationInWeeks.doubleValue());
+		//5 decimal precision
+		BigDecimal fte = new BigDecimal(Double.toString(totalFte)).setScale(5, BigDecimal.ROUND_HALF_UP);
+		String sFte = fte.toString();
+		resourceSpecification.setTotalFTE(Double.parseDouble(sFte));
+		
+		return resourceSpecification ;
+	}
+	
+	private List<WeeklyFTE> processFTESchedule(Map<String, Object> data) {
+		List<WeeklyFTE> weeklyFTEs = new ArrayList<WeeklyFTE>();
+		WeeklyFTE weeklyFTE = null;
+		Integer durationInWeeks = null;
+		try {
+			Double fteValue = Double.valueOf( (String) data.get(this.resourceFteBalanceCol) );
+			String startDateString = (String) data.get(this.resourceStartDateCol);
+			String endDateString = (String) data.get(this.resourceEndDateCol);
+			LocalDate startDate = DateUtil.stringToDate(startDateString);
+			LocalDate endDate = DateUtil.stringToDate(endDateString);
+			durationInWeeks = DateUtil.getWeeks(startDate, endDate, WEEKSINMONTH);
+			
+			for(long i = 1 ; i <= durationInWeeks; i++) {
+				//arbitrary resource spec id will be handled in saving
+				weeklyFTE = new WeeklyFTE(i, i, fteValue);
+				weeklyFTEs.add(weeklyFTE);
+				log.debug("an fte val entry " + weeklyFTE.getResourceScheduleFTE());
+			}
+			
+		} catch(Exception e) {
+			log.debug(" no entries for fte, dates invalid ");
+			e.printStackTrace();
+			weeklyFTE = null;
+		}
+		log.debug("upload fte size " + weeklyFTEs.size());
+		return weeklyFTEs;
+	}
+	
+	
+	@Override
+	public List<Opportunity> saveTnlOpportunities(Workbook tnlWorkbook, String owner, Integer businessUnitId) {
+		//init references
+		this.businessUnitMap = this.mapBusinessUnit();
+		this.businessUnitIdMap = this.mapBusinessUnitId();
+		this.roleMap = this.mapRole();
+		this.practiceMap = this.mapPractice();
+		this.payLevelMap = this.mapPayLevel();
+		List<Opportunity> savedOpportunities = null;
+		try {
+			List<Map<String,Object>> listOfEntries = new ArrayList<Map<String,Object>>();
+			for(OpportunityTnl entry : tnlWorkbook.getOpportunityTnl()) {
+				listOfEntries.add(entry.getDataMap());
+			}
+			Map<String, List<Map<String, Object>>> opportunityCollection = this.segregateOpportunities(listOfEntries);
+			List<Opportunity> opportunitiesToSave = this.transformToOpportunityList(opportunityCollection, owner, businessUnitId);
+			savedOpportunities = this.saveData(opportunitiesToSave);
+		} catch(Exception e) {
+			log.error("error in migration of uploaded data" );
+			log.error(e.getMessage());
+			e.printStackTrace();
+			savedOpportunities = null;
+		}
+		return savedOpportunities;
+	}
+
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+	private List<Opportunity> saveData(List<Opportunity> opportunities) {
+		List<Opportunity> savedOpportunities = new ArrayList<Opportunity>();
+		try {
+			Opportunity savedOpportunity = null;
+			OpportunityActivity savedOpportunityActivity = null;
+			ResourceSpecification savedResourceSpecification = null;
+			Long opportunityId = null;
+			Long opportunityActivityId = null;
+			List<OpportunityActivity> oppa = null;
+			List<ResourceSpecification> ress = null;
+			List<WeeklyFTE> fteWeeks = null;
+			WeeklyFTEKey key = null;
+			for(Opportunity opportunity : opportunities) {
+				oppa = opportunity.getOpportunityActivities();
+				opportunity.setOpportunityActivities(null);
+				savedOpportunity = opportunityService.saveOpportunity(opportunity);
+				opportunityId = savedOpportunity.getOpportunityId();
+				log.debug("upload saved opp id : " + opportunityId);
+				for(OpportunityActivity oppAct : oppa) {				
+					ress = oppAct.getResourceSpecificationList();
+					oppAct.setResourceSpecificationList(null);
+					oppAct.setOpportunityId(opportunityId);
+					savedOpportunityActivity = opportunityActivityService.saveOpportunityActivity(oppAct);
+					opportunityActivityId = savedOpportunityActivity.getOpportunityActivityId();
+					log.debug("upload oppAct act id " + savedOpportunityActivity.getActivity().getActivityId());
+					log.debug("upload oppAct transact id " + opportunityActivityId);
+					for(ResourceSpecification resSpec : ress) {
+						resSpec.setOpportunityActivityId(opportunityActivityId);
+						fteWeeks = resSpec.getResourceSchedule();
+						resSpec.setResourceSchedule(null);
+						savedResourceSpecification = resourceSpecificationService.saveResourceSpecification(resSpec);
+						log.debug("upload resSpec id " + savedResourceSpecification.getResourceSpecificationId());
+						for(WeeklyFTE fteWeek : fteWeeks) {
+							key = fteWeek.getKey();
+							key.setResourceSpecificationId(savedResourceSpecification.getResourceSpecificationId());
+							fteWeek.setKey(key);
+							weeklyFTEService.saveWeeklyFTE(fteWeek);
+							log.debug("saving fte of res spec id.. " + key.getResourceSpecificationId());
+						}
+					}
+				}
+				savedOpportunities.add(opportunityService.fetchOpportunity(opportunityId));
+					
+			}
+		} catch(Exception e) {
+			log.error("Error in migration " + e.getMessage());
+			e.printStackTrace();
+			savedOpportunities = null;
+		}
+		return savedOpportunities;
+	}
+	
+}

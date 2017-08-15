@@ -1,0 +1,42 @@
+package com.pointwest.workforce.planner.domain;
+
+public class WorkbookErrorSummary {
+
+	private int rowsValidated;
+	private int rowsPassed;
+	private int rowsFailed;
+	private int errorsLogged;
+
+	public int getRowsValidated() {
+		return rowsValidated;
+	}
+
+	public void setRowsValidated(int rowsValidated) {
+		this.rowsValidated = rowsValidated;
+	}
+
+	public int getRowsPassed() {
+		return rowsPassed;
+	}
+
+	public void setRowsPassed(int rowsPassed) {
+		this.rowsPassed = rowsPassed;
+	}
+
+	public int getRowsFailed() {
+		return rowsFailed;
+	}
+
+	public void setRowsFailed(int rowsFailed) {
+		this.rowsFailed = rowsFailed;
+	}
+
+	public int getErrorsLogged() {
+		return errorsLogged;
+	}
+
+	public void setErrorsLogged(int errorsLogged) {
+		this.errorsLogged = errorsLogged;
+	}
+
+}

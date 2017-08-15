@@ -1,0 +1,51 @@
+package com.pointwest.workforce.planner.service.impl;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import com.pointwest.workforce.planner.data.OpportunityActivityRepository;
+import com.pointwest.workforce.planner.data.OpportunityCollaboratorRepository;
+import com.pointwest.workforce.planner.data.OpportunityRepository;
+import com.pointwest.workforce.planner.data.ResourceSpecificationRepository;
+import com.pointwest.workforce.planner.data.SystemRoleAccessRepository;
+import com.pointwest.workforce.planner.domain.WorkbookErrorRecord;
+import com.pointwest.workforce.planner.service.WorkbookValidationErrorDataService;
+
+@Service
+public class WorkbookValidationErrorDataServiceImpl implements WorkbookValidationErrorDataService {
+
+	@Autowired
+	private SystemRoleAccessRepository systemRoleAccessRepository;
+	
+	@Autowired
+	private OpportunityCollaboratorRepository opportunityCollaboratorRepository;
+	
+	@Autowired
+	private OpportunityRepository opportunityRepository;
+	
+	@Autowired
+	private OpportunityActivityRepository opportunityActivityRepository;
+	
+	@Autowired
+	private ResourceSpecificationRepository resourceSpecificationRepository;
+	
+	@Value("${collaborator.permission.edit}")
+	private String EDIT;
+
+	@Override
+	public WorkbookErrorRecord saveWorkbookErrorRecord(
+			WorkbookErrorRecord workbookErrorRecord) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public WorkbookErrorRecord fetchWorkbookErrorRecord(
+			Long workbookErrorRecordId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	
+}
